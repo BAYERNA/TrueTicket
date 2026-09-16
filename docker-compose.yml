@@ -14,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - infra-data/ticket-db:/var/lib/postgresql/data
+      - ./infra-data/ticket-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ticket -d ticket_service"]
       interval: 5s
@@ -31,7 +31,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - infra-data/notification-db:/var/lib/postgresql/data
+      - ./infra-data/notification-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U notification -d notification_service"]
       interval: 5s
@@ -48,7 +48,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - infra-data/bot-detection-db:/var/lib/postgresql/data
+      - ./infra-data/bot-detection-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U botdetect -d bot_detection_service"]
       interval: 5s
@@ -65,7 +65,7 @@ services:
     ports:
       - "5435:5432"
     volumes:
-      - infra-data/resale-monitor-db:/var/lib/postgresql/data
+      - ./infra-data/resale-monitor-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U resale -d resale_monitor_service"]
       interval: 5s
@@ -82,7 +82,7 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - infra-data/verification-db:/var/lib/postgresql/data
+      - ./infra-data/verification-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U verify -d verification_service"]
       interval: 5s
@@ -118,7 +118,7 @@ services:
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
       ALLOW_PLAINTEXT_LISTENER: "yes"
     volumes:
-      - infra-data/kafka:/bitnami/kafka
+      - ./infra-data/kafka:/bitnami/kafka
 
   minio:
     image: minio/minio:latest
@@ -131,7 +131,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - infra-data/minio:/data
+      - ./infra-data/minio:/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 5s
