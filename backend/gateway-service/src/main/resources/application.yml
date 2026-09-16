@@ -1,0 +1,67 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    gateway:
+      routes:
+        # Core Domain (Kotlin/Spring, Eureka 등록 서비스 → 로드밸런싱 라우팅)
+        - id: ticket-service
+          uri: lb://ticket-service
+          predicates:
+            - Path=/api/tickets/**,/api/events,/api/events/**,/api/reservations,/api/reservations/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: queue-service
+          uri: lb://queue-service
+          predicates:
+            - Path=/api/queue/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications,/api/notifications/**,/api/reports,/api/reports/**,/api/judgments/**
+
+        # AI Domain (FastAPI, MVP 단계에서는 고정 호스트로 라우팅)
+        - id: bot-detection-service
+          uri: ${BOT_DETECTION_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/bot-detection/**
+
+        - id: resale-monitor-service
+          uri: ${RESALE_MONITOR_SERVICE_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/resale-monitor/**
+
+        - id: verification-service
+          uri: ${VERIFICATION_SERVICE_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/verification/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
