@@ -41,17 +41,17 @@ spring:
 
         # AI Domain (FastAPI, MVP 단계에서는 고정 호스트로 라우팅)
         - id: bot-detection-service
-          uri: ${BOT_DETECTION_SERVICE_URI:http://localhost:8081}
+          uri: ${BOT_DETECTION_SERVICE_URI:http://localhost:8091}
           predicates:
             - Path=/api/bot-detection/**
 
         - id: resale-monitor-service
-          uri: ${RESALE_MONITOR_SERVICE_URI:http://localhost:8082}
+          uri: ${RESALE_MONITOR_SERVICE_URI:http://localhost:8092}
           predicates:
             - Path=/api/resale-monitor/**
 
         - id: verification-service
-          uri: ${VERIFICATION_SERVICE_URI:http://localhost:8083}
+          uri: ${VERIFICATION_SERVICE_URI:http://localhost:8093}
           predicates:
             - Path=/api/verification/**
 

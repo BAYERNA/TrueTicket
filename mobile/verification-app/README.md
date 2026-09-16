@@ -36,7 +36,7 @@ lib/
 
 ## 설정
 
-`lib/services/verification_api.dart`의 `baseUrl` 기본값은 `http://localhost:8083`
+`lib/services/verification_api.dart`의 `baseUrl` 기본값은 `http://localhost:8093`
 (verification-service 직접 호출)이다. 실기기에서 테스트할 때는 PC의 LAN IP로,
 배포 환경에서는 Gateway 주소로 교체한다.
 

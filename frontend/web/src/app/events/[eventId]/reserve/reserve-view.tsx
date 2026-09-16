@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiClient } from "@/lib/api-client";
 import { useSessionStore } from "@/store/useSessionStore";
 import type { QueueStatusResponse, ReservationResponse, Seat } from "@/types/domain";
@@ -12,6 +12,27 @@ export function ReserveView({ eventId }: { eventId: string }) {
   const queryClient = useQueryClient();
   const userId = useSessionStore((state) => state.userId) ?? "anonymous-dev-user";
   const [selectedSeatId, setSelectedSeatId] = useState<string | null>(null);
+  // FR-003/FR-004: 좌석 선택 화면에 진입한 시점부터 하나의 "예매 세션"으로 간주하고,
+  // 행동 로그·취득 부정성 스코어 조회·최종 예매 요청을 모두 이 ID로 묶는다.
+  const [reservationSessionId] = useState(() => crypto.randomUUID());
+  const lastClickAtRef = useRef<number | null>(null);
+
+  function trackClick() {
+    const now = Date.now();
+    const intervalMs = lastClickAtRef.current !== null ? now - lastClickAtRef.current : null;
+    lastClickAtRef.current = now;
+
+    // 행동 로그 수집은 best-effort: 실패해도 예매 흐름을 막지 않는다.
+    apiClient
+      .post("/api/bot-detection/behavior-logs", {
+        reservationSessionId,
+        eventType: "click",
+        // metadata는 bot-detection-service의 자유 형식 dict라 스코어링 로직(interval_ms)과
+        // 이름을 맞춰야 한다.
+        metadata: intervalMs !== null ? { interval_ms: intervalMs } : {},
+      })
+      .catch(() => undefined);
+  }
 
   // FR-001: 진입 시 가상대기열에 배치하고 실시간 순번을 안내한다.
   const joinQueue = useMutation({
@@ -41,7 +62,12 @@ export function ReserveView({ eventId }: { eventId: string }) {
 
   const reserve = useMutation({
     mutationFn: (seatId: string) =>
-      apiClient.post<ReservationResponse>("/api/reservations", { userId, eventId, seatId }),
+      apiClient.post<ReservationResponse>("/api/reservations", {
+        userId,
+        eventId,
+        seatId,
+        reservationSessionId,
+      }),
     onSuccess: (reservation) => {
       router.push(`/checkout?reservationId=${reservation.reservationId}`);
     },
@@ -70,7 +96,10 @@ export function ReserveView({ eventId }: { eventId: string }) {
             key={seat.id}
             type="button"
             disabled={seat.status !== "AVAILABLE" || reserve.isPending}
-            onClick={() => setSelectedSeatId(seat.id)}
+            onClick={() => {
+              setSelectedSeatId(seat.id);
+              trackClick();
+            }}
             className={`rounded-md border p-2 text-xs ${
               seat.status !== "AVAILABLE"
                 ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
@@ -94,7 +123,11 @@ export function ReserveView({ eventId }: { eventId: string }) {
       </button>
 
       {reserve.isError && (
-        <p className="text-sm text-red-600">이미 선점된 좌석입니다. 다른 좌석을 선택해주세요.</p>
+        <p className="text-sm text-red-600">
+          {reserve.error instanceof Error && reserve.error.message.includes("403")
+            ? "이상 행동이 감지되어 예매가 제한되었습니다."
+            : "이미 선점된 좌석입니다. 다른 좌석을 선택해주세요."}
+        </p>
       )}
     </div>
   );

@@ -59,9 +59,9 @@ cd backend && ./gradlew :queue-service:bootRun
 cd backend && ./gradlew :notification-service:bootRun
 
 # 3. AI Domain 서비스 (각 디렉토리에서 개별 실행)
-cd ai/bot-detection-service && uvicorn app.main:app --reload --port 8081
-cd ai/resale-monitor-service && uvicorn app.main:app --reload --port 8082
-cd ai/verification-service && uvicorn app.main:app --reload --port 8083
+cd ai/bot-detection-service && uvicorn app.main:app --reload --port 8091
+cd ai/resale-monitor-service && uvicorn app.main:app --reload --port 8092
+cd ai/verification-service && uvicorn app.main:app --reload --port 8093
 
 # 4. 프론트엔드
 cd frontend/web && npm install && npm run dev

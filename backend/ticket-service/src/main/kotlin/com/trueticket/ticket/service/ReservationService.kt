@@ -1,13 +1,19 @@
 package com.trueticket.ticket.service
 
+import com.trueticket.ticket.client.BehaviorScoreRequest
+import com.trueticket.ticket.client.BehaviorScoreResponse
+import com.trueticket.ticket.client.BotDetectionClient
 import com.trueticket.ticket.domain.Reservation
 import com.trueticket.ticket.domain.ReservationStatus
 import com.trueticket.ticket.domain.SeatStatus
 import com.trueticket.ticket.dto.CreateReservationRequest
 import com.trueticket.ticket.dto.ReservationResponse
+import com.trueticket.ticket.exception.BotSuspectedException
 import com.trueticket.ticket.exception.SeatAlreadyTakenException
 import com.trueticket.ticket.repository.ReservationRepository
 import com.trueticket.ticket.repository.SeatRepository
+import org.slf4j.LoggerFactory
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,7 +23,11 @@ import java.util.UUID
 class ReservationService(
     private val seatRepository: SeatRepository,
     private val reservationRepository: ReservationRepository,
+    private val botDetectionClient: BotDetectionClient,
+    circuitBreakerFactory: CircuitBreakerFactory<*, *>,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val botDetectionCircuitBreaker = circuitBreakerFactory.create("bot-detection-service")
 
     /**
      * FR-002-1: 좌석은 @Version 기반 Optimistic Lock으로 보호된다. 두 트랜잭션이
@@ -27,6 +37,8 @@ class ReservationService(
      */
     @Transactional
     fun reserve(request: CreateReservationRequest): ReservationResponse {
+        checkAcquisitionScore(request.reservationSessionId)
+
         val seat = seatRepository.findById(request.seatId)
             .orElseThrow { SeatAlreadyTakenException(request.seatId) }
 
@@ -56,6 +68,25 @@ class ReservationService(
     }
 
     private fun generateQrCode(): String = "TT-" + UUID.randomUUID().toString().replace("-", "").take(20)
+
+    /**
+     * bot-detection-service를 동기 호출(Orchestration)해 취득 부정성 스코어를 확인한다.
+     * Circuit Breaker가 열려 있거나(장애 반복) 호출 자체가 실패하면, 예매 가용성을
+     * 우선해 봇 탐지를 건너뛰고 통과시킨다 — 오탐 방지보다 서비스 중단이 더 큰 비용이다.
+     */
+    private fun checkAcquisitionScore(reservationSessionId: UUID) {
+        val score = botDetectionCircuitBreaker.run(
+            { botDetectionClient.getScore(BehaviorScoreRequest(reservationSessionId, "RESERVE_ATTEMPT")) },
+            { ex: Throwable ->
+                log.warn("bot-detection-service 호출 실패, 스코어 검사를 건너뜁니다: {}", ex.message)
+                BehaviorScoreResponse(acquisitionFraudScore = 0.0, isFlagged = false)
+            },
+        )
+
+        if (score.isFlagged) {
+            throw BotSuspectedException(reservationSessionId)
+        }
+    }
 }
 
 private fun Reservation.toResponse() = ReservationResponse(

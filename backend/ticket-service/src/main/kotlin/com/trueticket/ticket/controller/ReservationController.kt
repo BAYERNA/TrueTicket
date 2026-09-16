@@ -3,6 +3,7 @@ package com.trueticket.ticket.controller
 import com.trueticket.ticket.domain.Reservation
 import com.trueticket.ticket.dto.CreateReservationRequest
 import com.trueticket.ticket.dto.ReservationResponse
+import com.trueticket.ticket.exception.BotSuspectedException
 import com.trueticket.ticket.exception.SeatAlreadyTakenException
 import com.trueticket.ticket.repository.ReservationRepository
 import com.trueticket.ticket.service.ReservationService
@@ -38,6 +39,11 @@ class ReservationController(
     @ExceptionHandler(SeatAlreadyTakenException::class)
     fun handleSeatAlreadyTaken(ex: SeatAlreadyTakenException): ResponseEntity<Map<String, String>> =
         ResponseEntity.status(HttpStatus.CONFLICT).body(mapOf("message" to (ex.message ?: "Seat already taken")))
+
+    @ExceptionHandler(BotSuspectedException::class)
+    fun handleBotSuspected(ex: BotSuspectedException): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(mapOf("message" to "매크로/봇으로 의심되는 세션은 예매할 수 없습니다."))
 }
 
 private fun Reservation.toResponse() = ReservationResponse(

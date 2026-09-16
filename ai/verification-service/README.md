@@ -8,7 +8,7 @@
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --port 8083
+uvicorn app.main:app --reload --port 8093
 ```
 
 얼굴 검출을 실제로 동작시키려면 YOLOv8 얼굴 검출 가중치(예: `yolov8n-face.pt`)를

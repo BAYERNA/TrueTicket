@@ -8,7 +8,7 @@
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --port 8081
+uvicorn app.main:app --reload --port 8091
 ```
 
 ## 엔드포인트

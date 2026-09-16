@@ -11,12 +11,12 @@ class VerificationResult {
 
   factory VerificationResult.fromJson(Map<String, dynamic> json) {
     return VerificationResult(
-      verificationId: json['verification_id'] as String,
-      reservationId: json['reservation_id'] as String,
-      faceMatchResult: json['face_match_result'] as bool,
-      faceMatchScore: (json['face_match_score'] as num).toDouble(),
-      duplicateScanFlag: json['duplicate_scan_flag'] as bool,
-      snapshotUri: json['snapshot_uri'] as String,
+      verificationId: json['verificationId'] as String,
+      reservationId: json['reservationId'] as String,
+      faceMatchResult: json['faceMatchResult'] as bool,
+      faceMatchScore: (json['faceMatchScore'] as num).toDouble(),
+      duplicateScanFlag: json['duplicateScanFlag'] as bool,
+      snapshotUri: json['snapshotUri'] as String,
     );
   }
 

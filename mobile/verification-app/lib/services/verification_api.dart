@@ -15,10 +15,10 @@ class VerificationApiException implements Exception {
 }
 
 /// FR-010/FR-011: QR 코드와 두 장의 이미지(현장 캡처, 신분증)를 verification-service로 전송한다.
-/// 개발 중에는 verification-service(8083)에 직접 붙고, 배포 시 Gateway 경유로 바꾸려면
+/// 개발 중에는 verification-service(8093)에 직접 붙고, 배포 시 Gateway 경유로 바꾸려면
 /// baseUrl만 교체하면 된다.
 class VerificationApi {
-  VerificationApi({this.baseUrl = 'http://localhost:8083'});
+  VerificationApi({this.baseUrl = 'http://localhost:8093'});
 
   final String baseUrl;
 
