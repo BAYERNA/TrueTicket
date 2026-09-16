@@ -11,3 +11,4 @@ minio==7.2.9
 opencv-python-headless==4.10.0.84
 numpy==2.1.1
 ultralytics==8.3.14
+prometheus-fastapi-instrumentator==7.0.0

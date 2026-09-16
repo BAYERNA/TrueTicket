@@ -67,6 +67,18 @@ cd ai/verification-service && uvicorn app.main:app --reload --port 8093
 cd frontend/web && npm install && npm run dev
 ```
 
+## 관찰성 (Prometheus + Grafana)
+
+Core Domain 5개 서비스는 Micrometer로 `GET /actuator/prometheus`를, AI Domain 3개
+서비스는 `prometheus-fastapi-instrumentator`로 `GET /metrics`를 노출한다.
+`docker compose up -d`로 인프라와 함께 Prometheus·Grafana도 올라간다(Prometheus는
+`host.docker.internal`로 호스트에서 직접 실행 중인 8개 서비스를 스크레이프한다).
+
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3001 (기본 계정 admin/admin, 익명 뷰어 접근 허용) —
+  `TrueTicket — 서비스 개요` 대시보드가 자동 프로비저닝되어 서비스 UP 상태, 요청
+  처리량, 평균 지연시간, JVM 힙 메모리를 보여준다.
+
 ## MVP 로드맵 (4주)
 
 | 기간 | 범위 | 산출물 |

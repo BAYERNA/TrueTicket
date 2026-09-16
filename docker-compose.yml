@@ -137,3 +137,36 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # ------------------------------------------------------------------
+  # Observability
+  # ------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trueticket-prometheus
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra-data/prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    # 각 서비스는 컨테이너가 아니라 호스트에서 직접 실행하는 것이 기본 개발 흐름이라
+    # (README 참고), host.docker.internal로 호스트에 뜬 서비스를 스크레이프한다.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: trueticket-grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./infra-data/grafana:/var/lib/grafana
+    ports:
+      - "3001:3000"

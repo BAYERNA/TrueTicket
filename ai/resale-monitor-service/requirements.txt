@@ -9,3 +9,4 @@ kafka-python==2.0.2
 httpx==0.27.2
 beautifulsoup4==4.12.3
 apscheduler==3.10.4
+prometheus-fastapi-instrumentator==7.0.0

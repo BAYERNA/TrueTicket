@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import init_db
 from app.routers import crawl, health, listings, sellers
@@ -14,6 +15,9 @@ app.include_router(health.router)
 app.include_router(listings.router)
 app.include_router(sellers.router)
 app.include_router(crawl.router)
+
+# GET /metrics: Prometheus가 스크레이프하는 HTTP 요청 수·지연시간 기본 지표.
+Instrumentator().instrument(app).expose(app)
 
 
 @app.on_event("startup")
