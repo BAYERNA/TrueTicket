@@ -23,10 +23,13 @@ spring:
                 redis-rate-limiter.burstCapacity: 40
                 key-resolver: "#{@ipKeyResolver}"
 
+        # /admit은 의도적으로 라우팅하지 않는다 — 관리자/스케줄러가 queue-service를
+        # 직접(사설망) 호출해야 하는 내부 전용 액션. 외부에 열리면 누구나 가상대기열을
+        # 건너뛸 수 있다.
         - id: queue-service
           uri: lb://queue-service
           predicates:
-            - Path=/api/queue/**
+            - Path=/api/queue/*/join,/api/queue/*/status/**
           filters:
             - name: RequestRateLimiter
               args:

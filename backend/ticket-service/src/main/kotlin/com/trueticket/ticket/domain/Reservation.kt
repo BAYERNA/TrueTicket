@@ -23,6 +23,9 @@ class Reservation(
     @Column(name = "seat_id", nullable = false)
     var seatId: UUID,
 
+    @Column(name = "reservation_session_id", unique = true)
+    var reservationSessionId: UUID? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "reservation_status", nullable = false)
     var status: ReservationStatus = ReservationStatus.PENDING,

@@ -18,6 +18,7 @@ interface ReservationRepository : JpaRepository<Reservation, UUID> {
     fun findByUserId(userId: UUID): List<Reservation>
     fun findByUserIdAndEventId(userId: UUID, eventId: UUID): List<Reservation>
     fun findByQrCode(qrCode: String): Reservation?
+    fun findByReservationSessionId(reservationSessionId: UUID): Reservation?
 }
 
 interface PaymentRepository : JpaRepository<Payment, UUID> {

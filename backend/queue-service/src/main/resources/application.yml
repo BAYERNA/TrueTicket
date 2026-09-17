@@ -9,6 +9,11 @@ spring:
       host: localhost
       port: 6379
 
+internal:
+  # FR-001: admitNext는 관리자/스케줄러 전용 API다. 게이트웨이 라우팅에서도 제외되지만,
+  # queue-service를 직접 호출하는 경로(사설망 침투 등)까지 막기 위한 2차 방어선.
+  admit-api-key: ${INTERNAL_ADMIT_API_KEY:local-dev-admit-key}
+
 eureka:
   client:
     service-url:
