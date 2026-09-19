@@ -1,0 +1,49 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# 애플리케이션 서비스는 docker-compose 인프라와 달리 컨테이너화하지 않고
+# 로컬에서 직접 실행하는 것을 기본 개발 흐름으로 삼는다(README 참고). 그래서
+# Prometheus 컨테이너에서는 host.docker.internal로 호스트에 떠 있는 각 서비스를
+# 스크레이프한다. host.docker.internal은 docker-compose.yml의 prometheus
+# 서비스에 extra_hosts로 등록돼 있다(Linux 호환).
+scrape_configs:
+  - job_name: discovery-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8761"]
+
+  - job_name: gateway-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+
+  - job_name: ticket-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+
+  - job_name: queue-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8082"]
+
+  - job_name: notification-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8084"]
+
+  - job_name: bot-detection-service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8091"]
+
+  - job_name: resale-monitor-service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8092"]
+
+  - job_name: verification-service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8093"]
