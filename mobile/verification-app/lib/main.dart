@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/scan_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const TrueTicketVerificationApp());
@@ -18,7 +18,7 @@ class TrueTicketVerificationApp extends StatelessWidget {
         colorSchemeSeed: const Color(0xFF1D4ED8),
         useMaterial3: true,
       ),
-      home: const ScanScreen(),
+      home: const LoginScreen(),
     );
   }
 }

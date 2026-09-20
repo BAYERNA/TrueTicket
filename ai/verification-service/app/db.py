@@ -27,6 +27,7 @@ class VerificationLog(Base):
     snapshot_uri: Mapped[str] = mapped_column(String(500))
     duplicate_scan_flag: Mapped[bool] = mapped_column(Boolean, default=False)
     verified_by: Mapped[str] = mapped_column(String(100))
+    snapshot_deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
         # FR-010/FR-011: 예매 건당 성공(face_match_result=true) 처리는 한 번만 있어야
@@ -38,6 +39,7 @@ class VerificationLog(Base):
             unique=True,
             postgresql_where=text("face_match_result = true"),
         ),
+        Index("idx_verification_snapshot_retention", "qr_scanned_at", "snapshot_deleted_at"),
     )
 
 

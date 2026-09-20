@@ -5,6 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.config import settings
 from app.crawler import run_crawl_once
 from app.db import SessionLocal
+from app.outbox import dispatch_outbox
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +22,16 @@ def _crawl_job() -> None:
 
 
 def start_scheduler() -> None:
-    if not settings.crawl_source_url:
-        logger.info("CRAWL_SOURCE_URL이 설정되지 않아 정기 크롤 스케줄러를 시작하지 않습니다.")
-        return
-
-    _scheduler.add_job(
-        _crawl_job,
-        "interval",
-        minutes=settings.crawl_interval_minutes,
-        id="resale-crawl",
-    )
+    _scheduler.add_job(dispatch_outbox, "interval", seconds=5, id="outbox-dispatch")
+    if settings.crawl_source_url:
+        _scheduler.add_job(
+            _crawl_job,
+            "interval",
+            minutes=settings.crawl_interval_minutes,
+            id="resale-crawl",
+        )
+    else:
+        logger.info("CRAWL_SOURCE_URL이 없어 크롤 스케줄만 비활성화합니다.")
     _scheduler.start()
     logger.info("재판매 크롤 스케줄러 시작 (주기: %d분)", settings.crawl_interval_minutes)
 

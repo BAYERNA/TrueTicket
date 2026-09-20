@@ -5,7 +5,9 @@ import 'capture_screen.dart';
 
 /// SCR-06 첫 단계: QR 티켓 스캔 (FR-010).
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key});
+  const ScanScreen({super.key, required this.accessToken});
+
+  final String accessToken;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -32,7 +34,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
     Navigator.of(context)
         .push<void>(
-          MaterialPageRoute(builder: (_) => CaptureScreen(qrCode: qrCode)),
+          MaterialPageRoute(builder: (_) => CaptureScreen(qrCode: qrCode, accessToken: widget.accessToken)),
         )
         .then((_) {
           if (!mounted) return;

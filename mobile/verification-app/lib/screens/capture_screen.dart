@@ -11,9 +11,10 @@ enum _CaptureStep { live, reference }
 /// SCR-06 두 번째 단계: 입장자 얼굴과 신분증을 순서대로 촬영해 verification-service로 전송한다
 /// (FR-011 YOLOv8 얼굴 검출 + 신분증 대조).
 class CaptureScreen extends StatefulWidget {
-  const CaptureScreen({super.key, required this.qrCode});
+  const CaptureScreen({super.key, required this.qrCode, required this.accessToken});
 
   final String qrCode;
+  final String accessToken;
 
   @override
   State<CaptureScreen> createState() => _CaptureScreenState();
@@ -88,7 +89,7 @@ class _CaptureScreenState extends State<CaptureScreen> {
     try {
       final result = await VerificationApi().verify(
         qrCode: widget.qrCode,
-        verifiedBy: 'gate-staff', // TODO: 스태프 로그인이 붙으면 실제 스태프 ID로 교체한다.
+        accessToken: widget.accessToken,
         liveImage: liveImage,
         referenceImage: referenceImage,
       );

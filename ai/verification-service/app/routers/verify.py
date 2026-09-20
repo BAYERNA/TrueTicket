@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Annotated
 
 import cv2
 import numpy as np
@@ -15,6 +16,7 @@ from app.face_matching import compute_similarity
 from app.minio_client import upload_snapshot
 from app.schemas import VerificationResponse
 from app.ticket_client import get_reservation_by_qr
+from app.auth import require_staff
 
 router = APIRouter(prefix="/api/verification", tags=["verify"])
 
@@ -29,8 +31,8 @@ def _decode_image(data: bytes) -> np.ndarray:
 
 @router.post("/verify", response_model=VerificationResponse)
 async def verify(
+    claims: Annotated[dict, Depends(require_staff)],
     qr_code: str = Form(...),
-    verified_by: str = Form(...),
     live_image: UploadFile = File(...),
     reference_image: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -78,7 +80,7 @@ async def verify(
         face_match_score=similarity,
         snapshot_uri=snapshot_uri,
         duplicate_scan_flag=False,
-        verified_by=verified_by,
+        verified_by=claims["sub"],
     )
     db.add(log)
     try:

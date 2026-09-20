@@ -1,15 +1,17 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.db import ResaleListing, Seller
-from app.kafka_producer import publish_habitual_score
+from app.db import OutboxEvent, ResaleListing, Seller
 from app.schemas import IngestListingRequest, ListingResponse
 from app.scoring import (
     compute_habitual_score,
     compute_price_anomaly_score,
     compute_seller_repetition_score,
 )
+from app.model_metrics import flagged_counter, score_histogram
 
 
 def ingest_listing(request: IngestListingRequest, db: Session) -> ListingResponse:
@@ -45,19 +47,26 @@ def ingest_listing(request: IngestListingRequest, db: Session) -> ListingRespons
         event_title_matched=request.event_title,
         listed_price=request.listed_price,
         price_anomaly_score=price_anomaly_score,
+        model_version=settings.model_version,
     )
     db.add(listing)
-    db.commit()
-    db.refresh(listing)
+    db.flush()
 
     if request.reservation_session_id:
         is_flagged = seller.habitual_score >= settings.habitual_score_threshold
-        publish_habitual_score(
-            reservation_session_id=request.reservation_session_id,
-            listing_id=listing.listing_id,
-            score=seller.habitual_score,
-            is_flagged=is_flagged,
-        )
+        score_histogram.observe(seller.habitual_score)
+        if is_flagged:
+            flagged_counter.labels(settings.model_version).inc()
+        db.add(OutboxEvent(topic="habitual-resale-scores", payload={
+            "reservationSessionId": request.reservation_session_id,
+            "listingId": listing.listing_id,
+            "habitualScore": seller.habitual_score,
+            "isFlagged": is_flagged,
+            "evaluatedAt": datetime.now(timezone.utc).isoformat(),
+        }))
+
+    db.commit()
+    db.refresh(listing)
 
     return ListingResponse(
         listing_id=listing.listing_id,

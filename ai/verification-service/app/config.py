@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production-at-least-32-bytes"
     jwt_issuer: str = "trueticket"
     internal_api_key: str = "change-me-in-production-internal-key"
+    otel_exporter_otlp_endpoint: str = "http://localhost:4318/v1/traces"
+    snapshot_encryption_key: str = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    snapshot_retention_days: int = 30
 
     class Config:
         env_file = ".env"

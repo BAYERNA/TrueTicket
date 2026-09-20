@@ -18,20 +18,20 @@ class VerificationApiException implements Exception {
 /// 개발 중에는 verification-service(8093)에 직접 붙고, 배포 시 Gateway 경유로 바꾸려면
 /// baseUrl만 교체하면 된다.
 class VerificationApi {
-  VerificationApi({this.baseUrl = 'http://localhost:8093'});
+  VerificationApi({this.baseUrl = 'http://localhost:8080'});
 
   final String baseUrl;
 
   Future<VerificationResult> verify({
     required String qrCode,
-    required String verifiedBy,
+    required String accessToken,
     required File liveImage,
     required File referenceImage,
   }) async {
     final uri = Uri.parse('$baseUrl/api/verification/verify');
     final request = http.MultipartRequest('POST', uri)
       ..fields['qr_code'] = qrCode
-      ..fields['verified_by'] = verifiedBy
+      ..headers['Authorization'] = 'Bearer $accessToken'
       ..files.add(await http.MultipartFile.fromPath('live_image', liveImage.path))
       ..files.add(await http.MultipartFile.fromPath('reference_image', referenceImage.path));
 

@@ -1,13 +1,7 @@
 import json
-import logging
-from datetime import datetime, timezone
-
 from kafka import KafkaProducer
-from kafka.errors import KafkaError
 
 from app.config import settings
-
-logger = logging.getLogger(__name__)
 
 _producer: KafkaProducer | None = None
 
@@ -22,16 +16,5 @@ def get_producer() -> KafkaProducer:
     return _producer
 
 
-def publish_habitual_score(reservation_session_id: str, listing_id: str, score: float, is_flagged: bool) -> None:
-    """AND 엔진(notification-service)이 구독하는 habitual-resale-scores 토픽에 발행한다."""
-    event = {
-        "reservationSessionId": reservation_session_id,
-        "listingId": listing_id,
-        "habitualScore": score,
-        "isFlagged": is_flagged,
-        "evaluatedAt": datetime.now(timezone.utc).isoformat(),
-    }
-    try:
-        get_producer().send("habitual-resale-scores", value=event)
-    except KafkaError:
-        logger.exception("Failed to publish habitual score event for listing=%s", listing_id)
+def publish(topic: str, payload: dict) -> None:
+    get_producer().send(topic, value=payload).get(timeout=10)

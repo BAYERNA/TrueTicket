@@ -39,37 +39,50 @@ mobile/verification-app Flutter (현장 검표 앱)
 | 외부 요청 진입점 | Spring Cloud Gateway | Rate Limiting으로 대기열 진입 전 1차 방어 |
 | 서비스 디스커버리 | Eureka | Client-side Service Discovery |
 
+사용자 요청은 ticket-service가 발급한 HS256 JWT로 인증하며, Gateway와 각 서비스가
+동일한 issuer·서명을 다시 검증한다. `USER`, `STAFF`, `ADMIN` 역할을 구분하고 사용자별
+예매·신고·알림 API는 JWT의 `sub`를 사용하므로 요청 본문으로 다른 사용자 ID를 위조할 수 없다.
+서비스 간 호출은 별도의 `X-Internal-Api-Key`로 보호한다.
+
 Kafka의 at-least-once 전달로 같은 이벤트가 재전송돼도
 `(reservation_session_id, listing_id)` 유니크 인덱스와 `ON CONFLICT DO NOTHING`으로
 최종 판정을 한 번만 저장한다. 한쪽 스코어만 도착한 미완성 조인 버퍼는 기본 24시간 후
 정리되며, 보관 시간과 정리 주기는 환경 설정으로 변경할 수 있다.
+AI 서비스는 판정 데이터와 Kafka 이벤트를 같은 DB 트랜잭션의 outbox에 기록한다. 발행 실패는
+지수 백오프로 재시도하고 5회 실패 시 `DEAD`로 격리하며, 소비 실패는 원 토픽의 `.DLT`로 이동한다.
 
 ## 데이터 원칙
 
 - **Database per Service**: 서비스별 PostgreSQL 인스턴스 분리, 물리적 FK 대신 ID 기반 논리적 참조
-- 얼굴 인증 캡처 이미지는 DB가 아닌 **MinIO**(S3 호환)에 저장하고, DB에는 참조 경로만 보관
-- 얼굴 임베딩·신분 정보 등 민감 정보는 AES-256 암호화 저장
+- 얼굴 인증 캡처 이미지는 AES-256-GCM으로 암호화해 **MinIO**에 저장하고, 기본 30일 뒤 자동 삭제
+- 좌석은 기본 5분간만 선점되며 결제 성공 후에만 QR을 발급; 실패·만료·취소 시 자동 반환
 
 ## 로컬 개발 환경 실행
 
 ```bash
-# 1. 인프라 기동 (PostgreSQL x5, Redis, Kafka, MinIO)
+# 1. 필수 비밀값 설정(예시 값 그대로 운영 환경에 사용하지 말 것)
+export JWT_SECRET='replace-with-at-least-32-random-bytes'
+export INTERNAL_API_KEY='replace-with-a-random-internal-key'
+export PAYMENT_WEBHOOK_SECRET='replace-with-a-random-webhook-secret'
+export PAYMENT_MOCK_ENABLED=true
+
+# 2. 인프라 기동 (PostgreSQL x5, Redis, Kafka, MinIO, Prometheus, Tempo, Grafana)
 docker compose up -d
 
-# 2. Core Domain 서비스 (각 디렉토리에서 개별 실행)
+# 3. Core Domain 서비스 (각 디렉토리에서 개별 실행)
 cd backend && ./gradlew :discovery-service:bootRun
 cd backend && ./gradlew :gateway-service:bootRun
 cd backend && ./gradlew :ticket-service:bootRun
 cd backend && ./gradlew :queue-service:bootRun
 cd backend && ./gradlew :notification-service:bootRun
 
-# 3. AI Domain 서비스 (각 디렉토리에서 개별 실행)
+# 4. AI Domain 서비스 (각 서비스의 .env.example을 .env로 복사하고 비밀값 교체)
 # 시작 시 Alembic이 미적용 DB 마이그레이션을 자동 반영한다.
 cd ai/bot-detection-service && uvicorn app.main:app --reload --port 8091
 cd ai/resale-monitor-service && uvicorn app.main:app --reload --port 8092
 cd ai/verification-service && uvicorn app.main:app --reload --port 8093
 
-# 4. 프론트엔드
+# 5. 프론트엔드
 cd frontend/web && npm install && npm run dev
 ```
 
@@ -85,17 +98,29 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
-## 관찰성 (Prometheus + Grafana)
+## 관찰성 (Prometheus + OpenTelemetry + Tempo + Grafana)
 
 Core Domain 5개 서비스는 Micrometer로 `GET /actuator/prometheus`를, AI Domain 3개
 서비스는 `prometheus-fastapi-instrumentator`로 `GET /metrics`를 노출한다.
 `docker compose up -d`로 인프라와 함께 Prometheus·Grafana도 올라간다(Prometheus는
 `host.docker.internal`로 호스트에서 직접 실행 중인 8개 서비스를 스크레이프한다).
+Spring과 FastAPI 서비스의 분산 trace는 OTLP/HTTP로 Tempo에 전송되며 Grafana Explore에서
+서비스 간 요청과 DB 호출을 하나의 trace로 조회할 수 있다.
 
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3001 (기본 계정 admin/admin, 익명 뷰어 접근 허용) —
   `TrueTicket — 서비스 개요` 대시보드가 자동 프로비저닝되어 서비스 UP 상태, 요청
   처리량, 평균 지연시간, JVM 힙 메모리를 보여준다.
+
+## 검증
+
+```bash
+cd backend && ./gradlew test
+cd frontend/web && npm ci && npm run lint && npm run build
+```
+
+백엔드 CI는 Testcontainers로 실제 PostgreSQL 16에 Flyway 마이그레이션과 주요 제약을 검증하고,
+AI 서비스 CI는 각 Alembic revision을 실제 PostgreSQL에서 upgrade/downgrade한다.
 
 ## MVP 로드맵 (4주)
 

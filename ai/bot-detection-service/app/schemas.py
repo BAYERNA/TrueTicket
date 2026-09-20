@@ -31,7 +31,14 @@ class BehaviorScoreResponse(CamelModel):
 
 
 class BotScoreLogEntry(CamelModel):
+    score_id: str
     reservation_session_id: str
     acquisition_fraud_score: float
     is_flagged: bool
     evaluated_at: datetime
+    model_version: str
+    review_label: str | None
+
+
+class ScoreFeedbackRequest(CamelModel):
+    label: str = Field(pattern="^(TRUE_POSITIVE|FALSE_POSITIVE|TRUE_NEGATIVE|FALSE_NEGATIVE)$")

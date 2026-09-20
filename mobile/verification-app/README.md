@@ -1,6 +1,6 @@
 # verification-app
 
-현장 검표 스태프용 Flutter 앱 (SCR-06). QR 스캔 → 입장자 얼굴 촬영 → 신분증 촬영 →
+현장 검표 스태프용 Flutter 앱 (SCR-06). 검표원 로그인 → QR 스캔 → 입장자 얼굴 촬영 → 신분증 촬영 →
 verification-service 호출 → 입장 승인/거부 표시 순서로 동작한다.
 
 ## 초기 설정
@@ -26,18 +26,19 @@ lib/
 ├── main.dart                 앱 진입점
 ├── screens/
 │   ├── scan_screen.dart       1단계: QR 스캔 (mobile_scanner)
+│   ├── login_screen.dart      검표원 JWT 로그인
 │   ├── capture_screen.dart    2단계: 얼굴/신분증 촬영 (camera)
 │   └── result_screen.dart     3단계: 매칭 결과·입장 승인/거부 표시
 ├── services/
-│   └── verification_api.dart  verification-service REST 클라이언트 (multipart)
+│   ├── auth_api.dart          로그인·보안 토큰 저장
+│   └── verification_api.dart  Gateway REST 클라이언트 (JWT + multipart)
 └── models/
     └── verification_result.dart
 ```
 
 ## 설정
 
-`lib/services/verification_api.dart`의 `baseUrl` 기본값은 `http://localhost:8093`
-(verification-service 직접 호출)이다. 실기기에서 테스트할 때는 PC의 LAN IP로,
+API 기본값은 Gateway인 `http://localhost:8080`이다. 실기기에서 테스트할 때는 PC의 LAN IP로,
 배포 환경에서는 Gateway 주소로 교체한다.
 
 ## 참고
