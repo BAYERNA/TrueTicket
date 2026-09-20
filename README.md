@@ -39,6 +39,11 @@ mobile/verification-app Flutter (현장 검표 앱)
 | 외부 요청 진입점 | Spring Cloud Gateway | Rate Limiting으로 대기열 진입 전 1차 방어 |
 | 서비스 디스커버리 | Eureka | Client-side Service Discovery |
 
+Kafka의 at-least-once 전달로 같은 이벤트가 재전송돼도
+`(reservation_session_id, listing_id)` 유니크 인덱스와 `ON CONFLICT DO NOTHING`으로
+최종 판정을 한 번만 저장한다. 한쪽 스코어만 도착한 미완성 조인 버퍼는 기본 24시간 후
+정리되며, 보관 시간과 정리 주기는 환경 설정으로 변경할 수 있다.
+
 ## 데이터 원칙
 
 - **Database per Service**: 서비스별 PostgreSQL 인스턴스 분리, 물리적 FK 대신 ID 기반 논리적 참조

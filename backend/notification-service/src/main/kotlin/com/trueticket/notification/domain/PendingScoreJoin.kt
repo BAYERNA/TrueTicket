@@ -29,5 +29,6 @@ class PendingScoreJoin(
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant = Instant.now(),
 ) {
-    fun isReadyToJudge(): Boolean = acquisitionScore != null && habitualScore != null
+    fun isReadyToJudge(): Boolean =
+        listingId != null && acquisitionScore != null && habitualScore != null
 }

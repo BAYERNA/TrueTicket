@@ -1,7 +1,6 @@
 package com.trueticket.notification.service
 
 import com.trueticket.notification.domain.PendingScoreJoin
-import com.trueticket.notification.domain.ScamJudgment
 import com.trueticket.notification.domain.Verdict
 import com.trueticket.notification.kafka.AcquisitionScoreEvent
 import com.trueticket.notification.kafka.HabitualScoreEvent
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.util.UUID
 
 /**
  * 3.2 기술적 판별 기준 / AND 엔진: 취득 부정성 스코어와 상습 판매 스코어가 각각
@@ -59,14 +59,14 @@ class AndEngineService(
             Verdict.CLEAR
         }
 
-        scamJudgmentRepository.save(
-            ScamJudgment(
-                reservationSessionId = pending.reservationSessionId,
-                listingId = pending.listingId,
-                acquisitionScore = acquisitionScore,
-                habitualScore = habitualScore,
-                verdict = verdict,
-            )
+        scamJudgmentRepository.insertIfAbsent(
+            judgmentId = UUID.randomUUID(),
+            reservationSessionId = pending.reservationSessionId,
+            listingId = requireNotNull(pending.listingId),
+            acquisitionScore = acquisitionScore,
+            habitualScore = habitualScore,
+            verdict = verdict.name,
+            judgedAt = Instant.now(),
         )
 
         pendingScoreJoinRepository.delete(pending)

@@ -30,6 +30,8 @@ trueticket:
   and-engine:
     acquisition-threshold: 0.7
     habitual-threshold: 0.7
+    pending-retention-hours: 24
+    cleanup-interval-ms: 3600000
 
 eureka:
   client:
