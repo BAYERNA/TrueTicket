@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, String, create_engine
+from sqlalchemy import Boolean, DateTime, Float, Index, String, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from app.config import settings
@@ -27,6 +27,18 @@ class VerificationLog(Base):
     snapshot_uri: Mapped[str] = mapped_column(String(500))
     duplicate_scan_flag: Mapped[bool] = mapped_column(Boolean, default=False)
     verified_by: Mapped[str] = mapped_column(String(100))
+
+    __table_args__ = (
+        # FR-010/FR-011: 예매 건당 성공(face_match_result=true) 처리는 한 번만 있어야
+        # 한다. 애플리케이션 레벨의 "먼저 조회하고 없으면 삽입" 체크만으로는 두 게이트에서
+        # 같은 QR을 거의 동시에 스캔하는 경합을 막지 못한다 — DB 제약을 최종 방어선으로 둔다.
+        Index(
+            "idx_verification_logs_one_success_per_reservation",
+            "reservation_id",
+            unique=True,
+            postgresql_where=text("face_match_result = true"),
+        ),
+    )
 
 
 engine = create_engine(settings.database_url, pool_pre_ping=True)

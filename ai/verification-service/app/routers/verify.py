@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -80,7 +81,14 @@ async def verify(
         verified_by=verified_by,
     )
     db.add(log)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # 위 already_verified 조회와 이 commit 사이에 같은 예매 건이 다른 게이트에서
+        # 거의 동시에 스캔·통과된 경합 상황. DB의 partial unique 제약이 막아준 것이므로
+        # 먼저 커밋된 쪽만 인정하고 이쪽은 중복으로 응답한다.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="이미 입장 처리된 QR 코드입니다 (중복 사용 의심)")
     db.refresh(log)
 
     return VerificationResponse(
