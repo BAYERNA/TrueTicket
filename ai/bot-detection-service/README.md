@@ -20,3 +20,5 @@ uvicorn app.main:app --reload --port 8091
 | POST | `/api/bot-detection/score` | FR-004 취득 부정성 스코어 조회 (ticket-service가 OpenFeign으로 동기 호출) + Kafka `acquisition-fraud-scores` 발행 |
 
 스코어링 로직은 현재 규칙 기반(`app/scoring.py`)이며, MVP 2주차 이후 scikit-learn 모델로 교체한다.
+DB 스키마는 Alembic으로 버전 관리되며 서비스 시작 시 `alembic upgrade head`가 자동 실행된다.
+수동 확인은 `alembic current`, 적용은 `alembic upgrade head`를 사용한다.

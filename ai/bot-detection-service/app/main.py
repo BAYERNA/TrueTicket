@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.db import init_db
+from app.migrations import run_migrations
 from app.routers import behavior, health, score
 
 app = FastAPI(
@@ -20,4 +20,4 @@ Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db()
+    run_migrations()

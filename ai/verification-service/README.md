@@ -24,3 +24,6 @@ uvicorn app.main:app --reload --port 8093
 
 `face_matching.py`의 히스토그램 기반 유사도는 MVP 3주차 자리표시자이며, 이후 ArcFace 등
 실제 얼굴 임베딩 모델로 교체한다.
+DB 스키마는 Alembic으로 버전 관리되며 서비스 시작 시 `alembic upgrade head`가 자동 실행된다.
+부분 유니크 인덱스를 포함한 동시성 제약도 기존 DB에 자동 반영된다. 수동 확인은
+`alembic current`, 적용은 `alembic upgrade head`를 사용한다.

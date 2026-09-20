@@ -59,12 +59,25 @@ cd backend && ./gradlew :queue-service:bootRun
 cd backend && ./gradlew :notification-service:bootRun
 
 # 3. AI Domain 서비스 (각 디렉토리에서 개별 실행)
+# 시작 시 Alembic이 미적용 DB 마이그레이션을 자동 반영한다.
 cd ai/bot-detection-service && uvicorn app.main:app --reload --port 8091
 cd ai/resale-monitor-service && uvicorn app.main:app --reload --port 8092
 cd ai/verification-service && uvicorn app.main:app --reload --port 8093
 
 # 4. 프론트엔드
 cd frontend/web && npm install && npm run dev
+```
+
+### AI Domain 스키마 마이그레이션
+
+세 FastAPI 서비스는 `create_all()` 대신 Alembic으로 스키마를 버전 관리한다. 서비스 시작 시
+`upgrade head`가 실행되므로 기존 DB에도 새 컬럼과 인덱스가 반영된다. 배포 전에 별도로
+검증하거나 롤백해야 할 때는 각 서비스 디렉터리에서 다음 명령을 사용한다.
+
+```bash
+alembic current
+alembic upgrade head
+alembic downgrade -1
 ```
 
 ## 관찰성 (Prometheus + Grafana)

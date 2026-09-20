@@ -39,3 +39,5 @@ uvicorn app.main:app --reload --port 8092
   <span class="price">150000</span>
 </div>
 ```
+DB 스키마는 Alembic으로 버전 관리되며 서비스 시작 시 `alembic upgrade head`가 자동 실행된다.
+수동 확인은 `alembic current`, 적용은 `alembic upgrade head`를 사용한다.

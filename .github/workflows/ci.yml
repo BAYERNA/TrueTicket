@@ -42,8 +42,22 @@ jobs:
       - run: npm run build
 
   ai-services:
-    name: AI Domain (Python syntax)
+    name: AI Domain (Python + Alembic)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ai_service
+          POSTGRES_USER: ai_service
+          POSTGRES_PASSWORD: ai_service
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ai_service -d ai_service"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     strategy:
       matrix:
         service: [bot-detection-service, resale-monitor-service, verification-service]
@@ -55,4 +69,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m py_compile $(find app -name "*.py")
+      - name: Install schema validation dependencies
+        run: pip install alembic==1.14.1 sqlalchemy==2.0.35 psycopg2-binary==2.9.9 pydantic-settings==2.5.2
+      - name: Compile application and migration code
+        run: python -m compileall -q app migrations
+      - name: Validate migrations on PostgreSQL
+        env:
+          DATABASE_URL: postgresql+psycopg2://ai_service:ai_service@localhost:5432/ai_service
+        run: |
+          alembic upgrade head
+          alembic check
+          python -m unittest discover -s tests -v
+          alembic downgrade base
+          alembic upgrade head

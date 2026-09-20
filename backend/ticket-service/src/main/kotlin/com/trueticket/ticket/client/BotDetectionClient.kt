@@ -25,7 +25,7 @@ data class BehaviorScoreResponse(
  */
 @FeignClient(
     name = "bot-detection-service",
-    url = "\${bot-detection-service.url:http://localhost:8081}",
+    url = "\${bot-detection-service.url:http://localhost:8091}",
     path = "/api/bot-detection",
 )
 interface BotDetectionClient {
