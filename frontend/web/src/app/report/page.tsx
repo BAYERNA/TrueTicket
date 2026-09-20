@@ -23,7 +23,6 @@ export default function ReportPage() {
   const submitReport = useMutation({
     mutationFn: (values: ReportFormValues) =>
       apiClient.post("/api/reports", {
-        reporterUserId: userId,
         targetListingId: values.targetListingId || null,
         reportReason: values.reportReason,
       }),

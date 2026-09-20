@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import java.time.Instant
 import java.util.UUID
 
-enum class UserRole { USER, ORGANIZER, ADMIN }
+enum class UserRole { USER, ORGANIZER, STAFF, ADMIN }
 
 @Entity
 @Table(name = "users")

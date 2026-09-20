@@ -14,6 +14,11 @@ internal:
   # queue-service를 직접 호출하는 경로(사설망 침투 등)까지 막기 위한 2차 방어선.
   admit-api-key: ${INTERNAL_ADMIT_API_KEY:local-dev-admit-key}
 
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:trueticket}
+
 eureka:
   client:
     service-url:

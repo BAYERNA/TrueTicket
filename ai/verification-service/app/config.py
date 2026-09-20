@@ -13,6 +13,9 @@ class Settings(BaseSettings):
 
     face_match_threshold: float = 0.75
     yolo_face_model_path: str = "yolov8n-face.pt"
+    jwt_secret: str = "change-me-in-production-at-least-32-bytes"
+    jwt_issuer: str = "trueticket"
+    internal_api_key: str = "change-me-in-production-internal-key"
 
     class Config:
         env_file = ".env"

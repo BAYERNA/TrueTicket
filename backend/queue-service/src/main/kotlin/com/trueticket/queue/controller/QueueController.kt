@@ -1,11 +1,11 @@
 package com.trueticket.queue.controller
 
-import com.trueticket.queue.dto.JoinQueueRequest
 import com.trueticket.queue.dto.QueueStatusResponse
 import com.trueticket.queue.exception.ForbiddenException
 import com.trueticket.queue.service.VirtualQueueService
-import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -16,12 +16,12 @@ class QueueController(
 ) {
 
     @PostMapping("/join")
-    fun join(@PathVariable eventId: String, @Valid @RequestBody request: JoinQueueRequest): QueueStatusResponse =
-        virtualQueueService.join(eventId, request.userId)
+    fun join(@PathVariable eventId: String, @AuthenticationPrincipal jwt: Jwt): QueueStatusResponse =
+        virtualQueueService.join(eventId, jwt.subject)
 
-    @GetMapping("/status/{userId}")
-    fun status(@PathVariable eventId: String, @PathVariable userId: String): QueueStatusResponse =
-        virtualQueueService.status(eventId, userId)
+    @GetMapping("/status")
+    fun status(@PathVariable eventId: String, @AuthenticationPrincipal jwt: Jwt): QueueStatusResponse =
+        virtualQueueService.status(eventId, jwt.subject)
 
     /**
      * FR-001: 대기열 앞쪽 N명을 입장시키는 관리자/스케줄러 전용 액션. 게이트웨이에서는

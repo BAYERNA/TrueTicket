@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.migrations import run_migrations
+from app.auth import require_staff
 from app.routers import health, verify
 
 app = FastAPI(
@@ -11,7 +12,7 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
-app.include_router(verify.router)
+app.include_router(verify.router, dependencies=[Depends(require_staff)])
 
 # GET /metrics: Prometheus가 스크레이프하는 HTTP 요청 수·지연시간 기본 지표.
 Instrumentator().instrument(app).expose(app)

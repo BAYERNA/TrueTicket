@@ -3,7 +3,7 @@ package com.trueticket.ticket.service
 import com.trueticket.ticket.domain.Reservation
 import com.trueticket.ticket.domain.ReservationStatus
 import com.trueticket.ticket.domain.SeatStatus
-import com.trueticket.ticket.dto.CreateReservationRequest
+import com.trueticket.ticket.dto.AuthenticatedReservationRequest
 import com.trueticket.ticket.dto.ReservationResponse
 import com.trueticket.ticket.exception.SeatAlreadyTakenException
 import com.trueticket.ticket.repository.ReservationRepository
@@ -43,7 +43,7 @@ class ReservationWriter(
     }
 
     @Transactional
-    fun holdSeatAndCreateReservation(request: CreateReservationRequest): ReservationResponse {
+    fun holdSeatAndCreateReservation(request: AuthenticatedReservationRequest): ReservationResponse {
         val seat = seatRepository.findById(request.seatId)
             .orElseThrow { SeatAlreadyTakenException(request.seatId) }
 

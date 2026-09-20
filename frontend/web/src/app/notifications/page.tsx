@@ -18,7 +18,7 @@ export default function NotificationsPage() {
 
   const { data: notifications, isPending } = useQuery({
     queryKey: ["notifications", userId],
-    queryFn: () => apiClient.get<NotificationItem[]>(`/api/notifications?userId=${userId}`),
+    queryFn: () => apiClient.get<NotificationItem[]>("/api/notifications"),
     enabled: !!userId,
   });
 

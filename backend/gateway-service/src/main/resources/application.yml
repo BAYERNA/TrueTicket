@@ -1,21 +1,29 @@
 server:
   port: 8080
 
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:trueticket}
+
 spring:
   application:
     name: gateway-service
-  data:
-    redis:
-      host: localhost
-      port: 6379
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: ${FRONTEND_ORIGIN:http://localhost:3000}
+            allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+            allowedHeaders: [Authorization, Content-Type, X-Requested-With]
+            allowCredentials: true
       routes:
         # Core Domain (Kotlin/Spring, Eureka 등록 서비스 → 로드밸런싱 라우팅)
         - id: ticket-service
           uri: lb://ticket-service
           predicates:
-            - Path=/api/tickets/**,/api/events,/api/events/**,/api/reservations,/api/reservations/**
+            - Path=/api/auth/**,/api/tickets/**,/api/events,/api/events/**,/api/reservations,/api/reservations/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -29,7 +37,7 @@ spring:
         - id: queue-service
           uri: lb://queue-service
           predicates:
-            - Path=/api/queue/*/join,/api/queue/*/status/**
+            - Path=/api/queue/*/join,/api/queue/*/status
           filters:
             - name: RequestRateLimiter
               args:
@@ -57,6 +65,10 @@ spring:
           uri: ${VERIFICATION_SERVICE_URI:http://localhost:8093}
           predicates:
             - Path=/api/verification/**
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 eureka:
   client:

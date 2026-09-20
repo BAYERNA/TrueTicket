@@ -1,6 +1,11 @@
 server:
   port: 8084
 
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:trueticket}
+
 spring:
   application:
     name: notification-service

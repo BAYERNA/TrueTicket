@@ -11,7 +11,7 @@ export default function MyTicketsPage() {
 
   const { data: reservations, isPending } = useQuery({
     queryKey: ["my-reservations", userId],
-    queryFn: () => apiClient.get<ReservationResponse[]>(`/api/reservations?userId=${userId}`),
+    queryFn: () => apiClient.get<ReservationResponse[]>("/api/reservations"),
     enabled: !!userId,
   });
 

@@ -2,6 +2,15 @@
 
 export type EventCategory = "KBO" | "CONCERT" | "MUSICAL" | "ETC";
 
+export interface AuthResponse {
+  accessToken: string;
+  tokenType: "Bearer";
+  expiresAt: string;
+  userId: string;
+  email: string;
+  role: string;
+}
+
 export interface TrueTicketEvent {
   id: string;
   title: string;

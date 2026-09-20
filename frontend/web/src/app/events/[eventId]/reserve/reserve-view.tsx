@@ -10,7 +10,7 @@ import type { QueueStatusResponse, ReservationResponse, Seat } from "@/types/dom
 export function ReserveView({ eventId }: { eventId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const userId = useSessionStore((state) => state.userId) ?? "anonymous-dev-user";
+  const userId = useSessionStore((state) => state.userId);
   const [selectedSeatId, setSelectedSeatId] = useState<string | null>(null);
   // FR-003/FR-004: 좌석 선택 화면에 진입한 시점부터 하나의 "예매 세션"으로 간주하고,
   // 행동 로그·취득 부정성 스코어 조회·최종 예매 요청을 모두 이 ID로 묶는다.
@@ -37,19 +37,23 @@ export function ReserveView({ eventId }: { eventId: string }) {
   // FR-001: 진입 시 가상대기열에 배치하고 실시간 순번을 안내한다.
   const joinQueue = useMutation({
     mutationFn: () =>
-      apiClient.post<QueueStatusResponse>(`/api/queue/${eventId}/join`, { userId }),
+      apiClient.post<QueueStatusResponse>(`/api/queue/${eventId}/join`),
   });
 
   useEffect(() => {
+    if (!userId) {
+      router.replace("/login");
+      return;
+    }
     joinQueue.mutate();
     // eventId가 바뀔 때만 재진입한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
+  }, [eventId, userId]);
 
   const { data: queueStatus } = useQuery({
     queryKey: ["queue-status", eventId, userId],
-    queryFn: () => apiClient.get<QueueStatusResponse>(`/api/queue/${eventId}/status/${userId}`),
-    enabled: joinQueue.isSuccess,
+    queryFn: () => apiClient.get<QueueStatusResponse>(`/api/queue/${eventId}/status`),
+    enabled: !!userId && joinQueue.isSuccess,
     refetchInterval: 3000,
   });
 
@@ -63,7 +67,6 @@ export function ReserveView({ eventId }: { eventId: string }) {
   const reserve = useMutation({
     mutationFn: (seatId: string) =>
       apiClient.post<ReservationResponse>("/api/reservations", {
-        userId,
         eventId,
         seatId,
         reservationSessionId,

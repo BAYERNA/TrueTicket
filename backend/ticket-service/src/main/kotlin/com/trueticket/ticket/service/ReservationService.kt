@@ -3,7 +3,7 @@ package com.trueticket.ticket.service
 import com.trueticket.ticket.client.BehaviorScoreRequest
 import com.trueticket.ticket.client.BehaviorScoreResponse
 import com.trueticket.ticket.client.BotDetectionClient
-import com.trueticket.ticket.dto.CreateReservationRequest
+import com.trueticket.ticket.dto.AuthenticatedReservationRequest
 import com.trueticket.ticket.dto.ReservationResponse
 import com.trueticket.ticket.exception.BotSuspectedException
 import com.trueticket.ticket.exception.SeatAlreadyTakenException
@@ -29,7 +29,7 @@ class ReservationService(
      * 롤백되도록 예외가 프록시 경계를 빠져나가게 해야, 여기서 "재조회로 복구"를
      * 시도할 때 UnexpectedRollbackException 없이 새 트랜잭션을 열 수 있다.
      */
-    fun reserve(request: CreateReservationRequest): ReservationResponse {
+    fun reserve(request: AuthenticatedReservationRequest): ReservationResponse {
         reservationWriter.findExisting(request.reservationSessionId)?.let {
             log.info("중복 요청 감지, 기존 예매 건 반환: sessionId={}", request.reservationSessionId)
             return it

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth import require_user
 from app.db import BehaviorLog, get_db
 from app.schemas import BehaviorLogEvent
 
-router = APIRouter(prefix="/api/bot-detection", tags=["behavior"])
+router = APIRouter(prefix="/api/bot-detection", tags=["behavior"], dependencies=[Depends(require_user)])
 
 
 @router.post("/behavior-logs", status_code=201)

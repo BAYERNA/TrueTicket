@@ -2,27 +2,40 @@
 
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { apiClient } from "@/lib/api-client";
 import { useSessionStore } from "@/store/useSessionStore";
+import type { AuthResponse } from "@/types/domain";
+import Link from "next/link";
 
 interface LoginFormValues {
   email: string;
   password: string;
 }
 
-// SCR-01: 이메일/비밀번호 로그인.
-// TODO: ticket-service에 인증 엔드포인트(JWT 발급)가 아직 없어 현재는 세션 스토어만 채운다.
+// SCR-01: 이메일/비밀번호를 검증하고 API 호출에 사용할 JWT를 발급받는다.
 export default function LoginPage() {
   const router = useRouter();
   const login = useSessionStore((state) => state.login);
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>();
 
   const onSubmit = handleSubmit(async (values) => {
-    login(crypto.randomUUID(), values.email);
-    router.push("/events");
+    try {
+      const session = await apiClient.post<AuthResponse>("/api/auth/login", values);
+      login({
+        userId: session.userId,
+        email: session.email,
+        roles: [session.role],
+        accessToken: session.accessToken,
+      });
+      router.replace("/events");
+    } catch {
+      setError("root", { message: "이메일 또는 비밀번호를 확인해주세요." });
+    }
   });
 
   return (
@@ -41,6 +54,8 @@ export default function LoginPage() {
           />
           {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
         </div>
+
+        {errors.root && <p className="text-sm text-red-600">{errors.root.message}</p>}
 
         <div className="flex flex-col gap-1">
           <label htmlFor="password" className="text-sm font-medium">
@@ -63,6 +78,9 @@ export default function LoginPage() {
           로그인
         </button>
       </form>
+      <p className="text-center text-sm text-zinc-500">
+        계정이 없나요? <Link className="font-medium text-blue-700" href="/register">회원가입</Link>
+      </p>
     </div>
   );
 }

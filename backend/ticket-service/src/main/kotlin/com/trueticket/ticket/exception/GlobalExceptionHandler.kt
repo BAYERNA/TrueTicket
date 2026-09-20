@@ -29,6 +29,14 @@ class GlobalExceptionHandler {
         ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ErrorResponse("매크로/봇으로 의심되는 세션은 예매할 수 없습니다."))
 
+    @ExceptionHandler(EmailAlreadyExistsException::class)
+    fun handleEmailAlreadyExists(ex: EmailAlreadyExistsException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse(ex.message ?: "Email already exists"))
+
+    @ExceptionHandler(InvalidCredentialsException::class)
+    fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Invalid credentials"))
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
         val fieldErrors = ex.bindingResult.fieldErrors.associate {

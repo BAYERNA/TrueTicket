@@ -1,16 +1,29 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface SessionState {
   userId: string | null;
   email: string | null;
-  login: (userId: string, email: string) => void;
+  roles: string[];
+  accessToken: string | null;
+  login: (session: Omit<SessionState, "login" | "logout">) => void;
   logout: () => void;
 }
 
-/** SCR-01 로그인 이후 세션 전역에서 공유되는 최소 상태. 토큰 저장은 별도 httpOnly 쿠키/스토리지 전략으로 확장한다. */
-export const useSessionStore = create<SessionState>((set) => ({
-  userId: null,
-  email: null,
-  login: (userId, email) => set({ userId, email }),
-  logout: () => set({ userId: null, email: null }),
-}));
+/** 브라우저 탭이 닫히면 제거되는 세션 스토리지에만 access token을 보관한다. */
+export const useSessionStore = create<SessionState>()(
+  persist(
+    (set) => ({
+      userId: null,
+      email: null,
+      roles: [],
+      accessToken: null,
+      login: (session) => set(session),
+      logout: () => set({ userId: null, email: null, roles: [], accessToken: null }),
+    }),
+    {
+      name: "trueticket-session",
+      storage: createJSONStorage(() => sessionStorage),
+    },
+  ),
+);

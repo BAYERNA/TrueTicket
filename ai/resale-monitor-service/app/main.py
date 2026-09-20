@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.migrations import run_migrations
+from app.auth import require_admin
 from app.routers import crawl, health, listings, sellers
 from app.scheduler import start_scheduler, stop_scheduler
 
@@ -12,9 +13,9 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
-app.include_router(listings.router)
-app.include_router(sellers.router)
-app.include_router(crawl.router)
+app.include_router(listings.router, dependencies=[Depends(require_admin)])
+app.include_router(sellers.router, dependencies=[Depends(require_admin)])
+app.include_router(crawl.router, dependencies=[Depends(require_admin)])
 
 # GET /metrics: Prometheus가 스크레이프하는 HTTP 요청 수·지연시간 기본 지표.
 Instrumentator().instrument(app).expose(app)
