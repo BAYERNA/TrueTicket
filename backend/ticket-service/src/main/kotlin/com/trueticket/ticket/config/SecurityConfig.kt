@@ -39,6 +39,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/reservations/qr/**").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/api/payments/webhooks/mock").permitAll()
                 it.anyRequest().authenticated()
             }
             .oauth2ResourceServer { oauth2 ->

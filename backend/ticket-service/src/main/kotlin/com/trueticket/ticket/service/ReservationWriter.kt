@@ -10,6 +10,9 @@ import com.trueticket.ticket.repository.ReservationRepository
 import com.trueticket.ticket.repository.SeatRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.beans.factory.annotation.Value
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 /**
@@ -24,6 +27,7 @@ import java.util.UUID
 class ReservationWriter(
     private val seatRepository: SeatRepository,
     private val reservationRepository: ReservationRepository,
+    @Value("\${reservation.hold-minutes:5}") private val holdMinutes: Long,
 ) {
 
     fun findExisting(reservationSessionId: UUID): ReservationResponse? =
@@ -61,12 +65,11 @@ class ReservationWriter(
                 seatId = request.seatId,
                 reservationSessionId = request.reservationSessionId,
                 status = ReservationStatus.PENDING,
-                qrCode = generateQrCode(),
+                qrCode = null,
+                expiresAt = Instant.now().plus(holdMinutes, ChronoUnit.MINUTES),
             )
         ).toResponse()
     }
-
-    private fun generateQrCode(): String = "TT-" + UUID.randomUUID().toString().replace("-", "").take(20)
 }
 
 private fun Reservation.toResponse() = ReservationResponse(
@@ -77,4 +80,5 @@ private fun Reservation.toResponse() = ReservationResponse(
     status = status,
     qrCode = qrCode,
     reservedAt = reservedAt,
+    expiresAt = expiresAt,
 )

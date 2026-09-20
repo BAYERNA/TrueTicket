@@ -7,17 +7,29 @@ import com.trueticket.ticket.dto.AuthenticatedReservationRequest
 import com.trueticket.ticket.dto.ReservationResponse
 import com.trueticket.ticket.exception.BotSuspectedException
 import com.trueticket.ticket.exception.SeatAlreadyTakenException
+import com.trueticket.ticket.domain.PaymentStatus
+import com.trueticket.ticket.domain.ReservationStatus
+import com.trueticket.ticket.domain.SeatStatus
+import com.trueticket.ticket.exception.ReservationAccessException
+import com.trueticket.ticket.repository.PaymentRepository
+import com.trueticket.ticket.repository.ReservationRepository
+import com.trueticket.ticket.repository.SeatRepository
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import java.util.UUID
+import java.time.Instant
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ReservationService(
     private val reservationWriter: ReservationWriter,
     private val botDetectionClient: BotDetectionClient,
+    private val reservationRepository: ReservationRepository,
+    private val seatRepository: SeatRepository,
+    private val paymentRepository: PaymentRepository,
     circuitBreakerFactory: CircuitBreakerFactory<*, *>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -52,6 +64,30 @@ class ReservationService(
         }
     }
 
+    @Transactional
+    fun cancel(reservationId: UUID, userId: UUID): ReservationResponse {
+        val reservation = reservationRepository.findByIdForUpdate(reservationId)
+            ?: throw ReservationAccessException("예매를 찾을 수 없습니다.")
+        if (reservation.userId != userId) throw ReservationAccessException("본인의 예매만 취소할 수 있습니다.")
+        if (reservation.status == ReservationStatus.CANCELLED) return reservation.toResponse()
+
+        val now = Instant.now()
+        paymentRepository.findByReservationId(reservationId)?.let { payment ->
+            if (payment.status == PaymentStatus.PAID) payment.status = PaymentStatus.REFUNDED
+            if (payment.status == PaymentStatus.PENDING) payment.status = PaymentStatus.FAILED
+            payment.updatedAt = now
+            paymentRepository.save(payment)
+        }
+        seatRepository.findById(reservation.seatId).ifPresent { seat ->
+            seat.status = SeatStatus.AVAILABLE
+            seatRepository.save(seat)
+        }
+        reservation.status = ReservationStatus.CANCELLED
+        reservation.cancelledAt = now
+        reservation.qrCode = null
+        return reservationRepository.save(reservation).toResponse()
+    }
+
     /**
      * bot-detection-service를 동기 호출(Orchestration)해 취득 부정성 스코어를 확인한다.
      * Circuit Breaker가 열려 있거나(장애 반복) 호출 자체가 실패하면, 예매 가용성을
@@ -71,3 +107,14 @@ class ReservationService(
         }
     }
 }
+
+private fun com.trueticket.ticket.domain.Reservation.toResponse() = ReservationResponse(
+    reservationId = requireNotNull(id),
+    userId = userId,
+    eventId = eventId,
+    seatId = seatId,
+    status = status,
+    qrCode = qrCode,
+    reservedAt = reservedAt,
+    expiresAt = expiresAt,
+)

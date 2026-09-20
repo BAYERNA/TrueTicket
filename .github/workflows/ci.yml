@@ -70,7 +70,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install schema validation dependencies
-        run: pip install alembic==1.14.1 sqlalchemy==2.0.35 psycopg2-binary==2.9.9 pydantic-settings==2.5.2
+        run: pip install alembic==1.14.1 sqlalchemy==2.0.35 psycopg2-binary==2.9.9 pydantic-settings==2.5.2 PyJWT==2.10.1
       - name: Compile application and migration code
         run: python -m compileall -q app migrations
       - name: Validate migrations on PostgreSQL

@@ -37,6 +37,18 @@ class GlobalExceptionHandler {
     fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Invalid credentials"))
 
+    @ExceptionHandler(ReservationAccessException::class)
+    fun handleReservationAccess(ex: ReservationAccessException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse(ex.message ?: "Reservation access denied"))
+
+    @ExceptionHandler(PaymentNotFoundException::class)
+    fun handlePaymentNotFound(ex: PaymentNotFoundException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse(ex.message ?: "Payment not found"))
+
+    @ExceptionHandler(InvalidPaymentStateException::class)
+    fun handleInvalidPaymentState(ex: InvalidPaymentStateException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse(ex.message ?: "Invalid payment state"))
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
         val fieldErrors = ex.bindingResult.fieldErrors.associate {

@@ -38,4 +38,10 @@ class Reservation(
 
     @Column(name = "confirmed_at")
     var confirmedAt: Instant? = null,
+
+    @Column(name = "expires_at", nullable = false)
+    var expiresAt: Instant = Instant.now(),
+
+    @Column(name = "cancelled_at")
+    var cancelledAt: Instant? = null,
 )

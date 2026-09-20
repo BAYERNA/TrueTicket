@@ -23,7 +23,7 @@ spring:
         - id: ticket-service
           uri: lb://ticket-service
           predicates:
-            - Path=/api/auth/**,/api/tickets/**,/api/events,/api/events/**,/api/reservations,/api/reservations/**
+            - Path=/api/auth/**,/api/tickets/**,/api/events,/api/events/**,/api/reservations,/api/reservations/**,/api/payments/**
           filters:
             - name: RequestRateLimiter
               args:

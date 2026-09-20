@@ -42,6 +42,19 @@ export interface ReservationResponse {
   status: ReservationStatus;
   qrCode: string | null;
   reservedAt: string;
+  expiresAt: string;
+}
+
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+
+export interface PaymentResponse {
+  paymentId: string;
+  reservationId: string;
+  providerPaymentId: string;
+  amount: number;
+  status: PaymentStatus;
+  reservationExpiresAt: string;
+  mockCheckoutToken: string;
 }
 
 // queue-service 응답

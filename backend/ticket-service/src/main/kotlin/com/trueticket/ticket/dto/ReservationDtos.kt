@@ -27,4 +27,5 @@ data class ReservationResponse(
     val status: ReservationStatus,
     val qrCode: String?,
     val reservedAt: Instant,
+    val expiresAt: Instant,
 )

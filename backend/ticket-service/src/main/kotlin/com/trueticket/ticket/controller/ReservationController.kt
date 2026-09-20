@@ -43,6 +43,12 @@ class ReservationController(
     fun findByUser(@AuthenticationPrincipal jwt: Jwt): List<ReservationResponse> =
         reservationRepository.findByUserId(UUID.fromString(jwt.subject)).map { it.toResponse() }
 
+    @PostMapping("/{reservationId}/cancel")
+    fun cancel(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable reservationId: UUID,
+    ): ReservationResponse = reservationService.cancel(reservationId, UUID.fromString(jwt.subject))
+
     /** FR-010: 현장 검표 시 verification-service가 QR 코드로 예매 건을 조회하기 위한 조회 전용 엔드포인트. */
     @GetMapping("/qr/{qrCode}")
     fun findByQrCode(
@@ -65,4 +71,5 @@ private fun Reservation.toResponse() = ReservationResponse(
     status = status,
     qrCode = qrCode,
     reservedAt = reservedAt,
+    expiresAt = expiresAt,
 )

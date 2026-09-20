@@ -2,12 +2,29 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { apiClient } from "@/lib/api-client";
+import type { PaymentResponse } from "@/types/domain";
 
-// TODO: 결제 게이트웨이 연동은 범위 밖. payments 테이블(ticket-service)에 대응하는
-// 결제 확정 엔드포인트가 추가되면 이 화면에서 호출한다.
 export function CheckoutView() {
   const searchParams = useSearchParams();
   const reservationId = searchParams.get("reservationId");
+  const [payment, setPayment] = useState<PaymentResponse | null>(null);
+
+  const prepare = useMutation({
+    mutationFn: () =>
+      apiClient.post<PaymentResponse>(`/api/payments/${reservationId}/prepare`, {
+        idempotencyKey: crypto.randomUUID(),
+        paymentMethod: "MOCK_CARD",
+      }),
+    onSuccess: setPayment,
+  });
+
+  const complete = useMutation({
+    mutationFn: () => apiClient.post<PaymentResponse>(`/api/payments/${payment?.paymentId}/mock-complete`),
+    onSuccess: setPayment,
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-12">
@@ -15,13 +32,26 @@ export function CheckoutView() {
       {reservationId ? (
         <>
           <p className="text-sm text-zinc-500">예매 번호: {reservationId}</p>
-          <p className="text-sm text-zinc-500">결제 수단 연동은 추후 구현 예정입니다.</p>
-          <Link
-            href="/my-tickets"
-            className="rounded-full bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800"
-          >
-            마이 티켓으로 이동
-          </Link>
+          {!payment && (
+            <button type="button" disabled={prepare.isPending} onClick={() => prepare.mutate()} className="rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50">
+              {prepare.isPending ? "결제 준비 중..." : "카드 결제 준비"}
+            </button>
+          )}
+          {payment?.status === "PENDING" && (
+            <div className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+              <p className="font-medium">결제 금액 {payment.amount.toLocaleString("ko-KR")}원</p>
+              <p className="text-xs text-zinc-500">개발 환경의 모의 결제입니다. 운영에서는 PG 결제창과 서명 검증 웹훅으로 대체됩니다.</p>
+              <button type="button" disabled={complete.isPending} onClick={() => complete.mutate()} className="rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50">
+                {complete.isPending ? "승인 처리 중..." : "모의 결제 승인"}
+              </button>
+            </div>
+          )}
+          {payment?.status === "PAID" && (
+            <Link href="/my-tickets" className="rounded-full bg-green-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-green-800">
+              결제 완료 — 마이 티켓 보기
+            </Link>
+          )}
+          {(prepare.isError || complete.isError) && <p className="text-sm text-red-600">결제를 처리할 수 없습니다. 선점 시간이 만료되었는지 확인해주세요.</p>}
         </>
       ) : (
         <p className="text-sm text-red-600">예매 번호가 없습니다.</p>

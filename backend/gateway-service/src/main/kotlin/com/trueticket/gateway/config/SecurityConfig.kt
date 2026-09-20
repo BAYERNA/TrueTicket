@@ -29,6 +29,7 @@ class SecurityConfig(
             .authorizeExchange {
                 it.pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
                 it.pathMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
+                it.pathMatchers(HttpMethod.POST, "/api/payments/webhooks/mock").permitAll()
                 it.pathMatchers("/api/resale-monitor/**", "/api/judgments/**").hasRole("ADMIN")
                 it.pathMatchers("/api/verification/**").hasAnyRole("STAFF", "ADMIN")
                 it.anyExchange().authenticated()

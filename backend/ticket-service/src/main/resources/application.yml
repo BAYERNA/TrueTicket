@@ -28,6 +28,14 @@ security:
     issuer: ${JWT_ISSUER:trueticket}
     access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:60}
   internal-api-key: ${INTERNAL_API_KEY}
+  payment-webhook-secret: ${PAYMENT_WEBHOOK_SECRET}
+
+reservation:
+  hold-minutes: ${RESERVATION_HOLD_MINUTES:5}
+  expiry-scan-ms: ${RESERVATION_EXPIRY_SCAN_MS:30000}
+
+payment:
+  mock-enabled: ${PAYMENT_MOCK_ENABLED:false}
 
 eureka:
   client:
