@@ -1,6 +1,10 @@
 server:
   port: 8082
 
+# Socket.IO는 서블릿 컨테이너가 아니라 별도의 Netty 서버로 뜬다(SocketIOConfig 참고).
+socketio:
+  port: ${QUEUE_SOCKET_PORT:9092}
+
 spring:
   application:
     name: queue-service
@@ -40,3 +44,7 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

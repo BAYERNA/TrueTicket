@@ -24,6 +24,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(libs.springdoc.openapi)
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-otel")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp")
@@ -31,5 +32,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // 프론트엔드의 socket.io-client가 실제로 연결할 수 있도록 Socket.IO 프로토콜
+    // 호환 서버를 붙인다. Spring MVC의 서블릿 컨테이너와는 별개의 포트에서 Netty로 뜬다.
+    implementation(libs.netty.socketio)
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.mockk:mockk:1.13.13")
 }

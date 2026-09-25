@@ -37,6 +37,7 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
+                it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/reservations/qr/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/payments/webhooks/mock").permitAll()

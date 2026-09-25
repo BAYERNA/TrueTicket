@@ -45,6 +45,15 @@ spring:
                 redis-rate-limiter.burstCapacity: 60
                 key-resolver: "#{@ipKeyResolver}"
 
+        # queue-service의 Socket.IO 서버는 서블릿 컨테이너와 별개의 Netty 포트에서 뜬다
+        # (SocketIOConfig 참고) — Eureka에 등록되는 인스턴스가 아니라서 AI Domain 라우트처럼
+        # 고정 호스트로 라우팅한다. Spring Cloud Gateway는 Upgrade 헤더를 감지해 WebSocket
+        # 업그레이드도 동일한 라우트로 투명하게 프록시한다.
+        - id: queue-socket
+          uri: ${QUEUE_SOCKET_URI:http://localhost:9092}
+          predicates:
+            - Path=/socket.io/**
+
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -89,3 +98,7 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

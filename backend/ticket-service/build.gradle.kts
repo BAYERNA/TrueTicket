@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.kotlin.jpa)
+    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -36,6 +37,13 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // 좌석 검색처럼 필터 조합이 동적으로 바뀌는 조회를 타입 안전하게 작성하기 위함.
+    // jakarta 네임스페이스(Spring Boot 3)용 classifier가 필요하다.
+    implementation("${libs.querydsl.jpa.get()}:jakarta")
+    kapt("${libs.querydsl.apt.get()}:jakarta")
+    kapt("jakarta.annotation:jakarta.annotation-api")
+    kapt("jakarta.persistence:jakarta.persistence-api")
 
     runtimeOnly("org.postgresql:postgresql")
 
