@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy import JSON, Boolean, DateTime, Float, Index, Integer, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from app.config import settings
@@ -49,6 +49,10 @@ class OutboxEvent(Base):
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_outbox_dispatch", "status", "next_attempt_at"),
+    )
 
 
 engine = create_engine(settings.database_url, pool_pre_ping=True)
