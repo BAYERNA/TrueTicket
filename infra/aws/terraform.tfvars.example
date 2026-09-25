@@ -1,0 +1,17 @@
+# 실제로 적용하려면 이 파일을 terraform.tfvars로 복사하고 값을 채운다.
+# terraform.tfvars는 .gitignore에 등록되어 있어 실수로 커밋되지 않는다.
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region  = "ap-northeast-2"
+environment = "dev"
+
+# Google Cloud Console에서 발급받은 실제 값으로 교체 — 비워두면(기본값) 소셜 로그인
+# 리다이렉트 자체는 여전히 시도되지만 실제 로그인은 완료되지 않는다.
+google_oauth_client_id     = "your-real-google-oauth-client-id"
+google_oauth_client_secret = "your-real-google-oauth-client-secret"
+
+# 선택 — 비워두면 Sentry SDK가 조용히 비활성 상태로 동작한다.
+sentry_dsn = ""
+
+# ACM에서 발급받은 인증서 ARN. 비워두면 HTTP(80)로만 서비스한다(데모/검증 전용).
+acm_certificate_arn = ""

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resale-monitor-service
+  namespace: trueticket
+  labels:
+    app: resale-monitor-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: resale-monitor-service
+  template:
+    metadata:
+      labels:
+        app: resale-monitor-service
+    spec:
+      containers:
+        - name: resale-monitor-service
+          image: ghcr.io/trueticket/resale-monitor-service:latest # 실제 레지스트리 이미지로 교체
+          ports:
+            - containerPort: 8092
+          envFrom:
+            - configMapRef:
+                name: trueticket-config
+            - secretRef:
+                name: trueticket-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: trueticket-secrets
+                  key: RESALE_MONITOR_DATABASE_URL
+            - name: PRICE_ANOMALY_RATIO_THRESHOLD
+              value: "1.3"
+            - name: HABITUAL_SCORE_THRESHOLD
+              value: "0.7"
+            - name: CRAWL_INTERVAL_MINUTES
+              value: "15"
+            - name: MODEL_VERSION
+              value: "resale-rules-v1"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo:4318/v1/traces"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8092
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8092
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resale-monitor-service
+  namespace: trueticket
+spec:
+  selector:
+    app: resale-monitor-service
+  ports:
+    - port: 8092
+      targetPort: 8092

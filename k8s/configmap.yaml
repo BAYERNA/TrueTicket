@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trueticket-config
+  namespace: trueticket
+data:
+  # Spring Boot의 relaxed binding으로 application.yml의 eureka.client.service-url.defaultZone을
+  # 코드 변경 없이 오버라이드한다 — 로컬 개발 기본값(localhost:8761)은 클러스터 안에서는 의미가 없다.
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:8761/eureka/"
+  FRONTEND_ORIGIN: "https://trueticket.example.com"
+  BOT_DETECTION_SERVICE_URL: "http://bot-detection-service:8091"
+  BOT_DETECTION_SERVICE_URI: "http://bot-detection-service:8091"
+  RESALE_MONITOR_SERVICE_URI: "http://resale-monitor-service:8092"
+  VERIFICATION_SERVICE_URI: "http://verification-service:8093"
+  QUEUE_SOCKET_URI: "http://queue-service-socket:9092"
+  PAYMENT_MOCK_ENABLED: "false"
+  TRACING_SAMPLE_RATE: "0.1"
+  TICKET_SERVICE_URL: "http://ticket-service:8081"
+  # 이 매니페스트는 애플리케이션 서비스만 다룬다 — Kafka/MinIO는 관리형 서비스나
+  # 별도 Helm 차트(Bitnami 등)로 클러스터에 준비되어 있다고 가정한다(k8s/README.md 참고).
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  MINIO_ENDPOINT: "minio:9000"
+  MINIO_BUCKET: "verification-snapshots"
+  MINIO_SECURE: "false"
+  # application.yml에 ${...} 오버라이드가 없는 하드코딩된 localhost 값들도, 이 키들은
+  # Spring Boot의 relaxed binding으로 여전히 환경변수가 우선한다.
+  SPRING_DATA_REDIS_HOST: "redis"
+  SPRING_DATA_REDIS_PORT: "6379"
+  # Tempo/OTel Collector가 클러스터에 없다면 이 값은 무시해도 안전하다 — 각 서비스는
+  # export 실패를 로그로만 남기고 애플리케이션 자체는 계속 정상 동작한다(README 참고).
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://tempo:4318/v1/traces"

@@ -57,3 +57,14 @@ secrets/
 
 ### Docker volumes (local dev data) ###
 infra-data/
+
+### Kubernetes (local secret values, never commit) ###
+k8s/secret.yaml
+
+### Terraform ###
+infra/aws/.terraform/
+infra/aws/.terraform.lock.hcl
+infra/aws/terraform.tfvars
+infra/aws/*.tfstate
+infra/aws/*.tfstate.*
+infra/aws/*.tfplan
