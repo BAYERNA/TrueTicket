@@ -15,6 +15,8 @@ interface LoginFormValues {
   password: string;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
 // SCR-01: 이메일/비밀번호를 검증하고 API 호출에 사용할 JWT를 발급받는다.
 export default function LoginPage() {
   const router = useRouter();
@@ -67,6 +69,17 @@ export default function LoginPage() {
           로그인
         </Button>
       </form>
+      <div className="flex items-center gap-3 text-xs text-zinc-400">
+        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+        또는
+        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+      </div>
+      <a
+        href={`${API_BASE_URL}/oauth2/authorization/google`}
+        className="flex items-center justify-center gap-2 rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+      >
+        Google로 로그인
+      </a>
       <p className="text-center text-sm text-zinc-500">
         계정이 없나요?{" "}
         <Link className="font-medium text-blue-700" href="/register">

@@ -45,6 +45,12 @@ mobile/verification-app Flutter (현장 검표 앱)
 예매·신고·알림 API는 JWT의 `sub`를 사용하므로 요청 본문으로 다른 사용자 ID를 위조할 수 없다.
 서비스 간 호출은 별도의 `X-Internal-Api-Key`로 보호한다.
 
+이메일/비밀번호 로그인 외에 Google 소셜 로그인(`GET /oauth2/authorization/google`)도
+지원한다. 로그인에 성공하면(신규 사용자는 자동 생성, 비밀번호는 아무도 알 수 없는
+무작위 값으로 채움) 기존 이메일/비밀번호 로그인과 동일한 형식의 JWT를 발급해
+`FRONTEND_ORIGIN/oauth2/callback`으로 리다이렉트한다 — 다운스트림 서비스는 로그인
+수단을 구분할 필요가 없다.
+
 queue-service의 Socket.IO 서버(포트 9092, `QUEUE_SOCKET_PORT`로 변경 가능)는 REST와
 동일한 JWT를 쿼리 파라미터(`token`, `eventId`)로 받아 핸드셰이크 시점에 검증한다.
 대기열 참여/입장 허용으로 상태가 바뀌면 접속 중인 사용자 각자에게 자신의 순번을
@@ -71,6 +77,11 @@ export JWT_SECRET='replace-with-at-least-32-random-bytes'
 export INTERNAL_API_KEY='replace-with-a-random-internal-key'
 export PAYMENT_WEBHOOK_SECRET='replace-with-a-random-webhook-secret'
 export PAYMENT_MOCK_ENABLED=true
+# Google 소셜 로그인(선택) — 비워두면(기본값) ticket-service가 여전히 Google의 실제
+# 인가 엔드포인트로 리다이렉트를 시도하지만 실제 로그인은 완료되지 않는다. 운영 배포 시
+# Google Cloud Console에서 발급받은 값으로 교체한다.
+export GOOGLE_OAUTH_CLIENT_ID='replace-with-a-real-google-oauth-client-id'
+export GOOGLE_OAUTH_CLIENT_SECRET='replace-with-a-real-google-oauth-client-secret'
 
 # 2. 인프라 기동 (PostgreSQL x5, Redis, Kafka, MinIO, Prometheus, Tempo, Grafana)
 docker compose up -d

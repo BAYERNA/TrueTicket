@@ -1,43 +1,32 @@
 package com.trueticket.ticket.config
 
-import com.nimbusds.jose.jwk.source.ImmutableSecret
-import com.nimbusds.jose.proc.SecurityContext
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.JwtEncoder
-import org.springframework.security.oauth2.jwt.JwtValidators
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
-import java.nio.charset.StandardCharsets
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
 
 @Configuration
 @EnableMethodSecurity
 class SecurityConfig(
-    @Value("\${security.jwt.secret}") private val jwtSecret: String,
-    @Value("\${security.jwt.issuer}") private val issuer: String,
+    private val oAuth2LoginSuccessHandler: OAuth2LoginSuccessHandler,
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            // OAuth2 로그인은 리다이렉트 왕복 동안 state/PKCE를 세션에 저장해야 한다 —
+            // 그래서 완전한 STATELESS 대신 IF_REQUIRED를 쓴다. API 요청 자체는 여전히
+            // Bearer 토큰만으로 인증되므로 세션을 만들지 않는다.
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                it.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/reservations/qr/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/payments/webhooks/mock").permitAll()
@@ -46,22 +35,10 @@ class SecurityConfig(
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) }
             }
+            .oauth2Login { oauth2 ->
+                oauth2.successHandler(oAuth2LoginSuccessHandler)
+            }
         return http.build()
-    }
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
-    @Bean
-    fun jwtEncoder(): JwtEncoder = NimbusJwtEncoder(ImmutableSecret<SecurityContext>(secretKey()))
-
-    @Bean
-    fun jwtDecoder(): JwtDecoder {
-        val decoder = NimbusJwtDecoder.withSecretKey(secretKey())
-            .macAlgorithm(MacAlgorithm.HS256)
-            .build()
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuer))
-        return decoder
     }
 
     private fun jwtAuthenticationConverter(): JwtAuthenticationConverter {
@@ -72,12 +49,5 @@ class SecurityConfig(
         return JwtAuthenticationConverter().apply {
             setJwtGrantedAuthoritiesConverter(authorities)
         }
-    }
-
-    private fun secretKey(): SecretKey {
-        require(jwtSecret.toByteArray(StandardCharsets.UTF_8).size >= 32) {
-            "JWT_SECRET must contain at least 32 bytes"
-        }
-        return SecretKeySpec(jwtSecret.toByteArray(StandardCharsets.UTF_8), "HmacSHA256")
     }
 }

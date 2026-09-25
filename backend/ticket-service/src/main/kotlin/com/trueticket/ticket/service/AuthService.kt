@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 @Service
 class AuthService(
@@ -54,7 +55,24 @@ class AuthService(
         return issueToken(user)
     }
 
-    private fun issueToken(user: User): AuthResponse {
+    /** Google 소셜 로그인: 이미 있는 이메일이면 재사용하고, 없으면 새로 만든다.
+     * 비밀번호가 없는 계정이므로 아무도 알 수 없는 무작위 값을 해시해 채워 넣는다 —
+     * password_hash 컬럼이 NOT NULL이지만, 이 해시로는 통상적인 이메일/비밀번호
+     * 로그인이 성공할 수 없다.
+     */
+    @Transactional
+    fun findOrCreateOAuth2User(email: String, name: String): User {
+        val normalizedEmail = email.trim().lowercase()
+        return userRepository.findByEmail(normalizedEmail) ?: userRepository.save(
+            User(
+                email = normalizedEmail,
+                passwordHash = passwordEncoder.encode(UUID.randomUUID().toString()),
+                name = name.trim().ifBlank { normalizedEmail },
+            )
+        )
+    }
+
+    fun issueToken(user: User): AuthResponse {
         val now = Instant.now()
         val expiresAt = now.plus(accessTokenMinutes, ChronoUnit.MINUTES)
         val userId = requireNotNull(user.id)
