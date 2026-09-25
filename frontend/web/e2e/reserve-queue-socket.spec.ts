@@ -17,8 +17,10 @@ test("reserve view genuinely attempts a Socket.IO connection and falls back to R
   page,
 }) => {
   let socketRequestSeen = false;
-  // queue-service에는 실제 Socket.IO 서버가 없다 — 연결이 시도된 뒤 거부되는 실제 상황을
-  // 그대로 재현하기 위해 접속을 abort한다(가짜로 성공시키지 않는다).
+  // 프론트엔드 e2e는 실제 Kotlin 백엔드를 띄우지 않는다 — 게이트웨이/소켓 포트에 닿지
+  // 않는 실제 상황(배포 환경 차단, 서비스 다운 등)을 재현하기 위해 접속을 abort한다
+  // (가짜로 성공시키지 않는다). queue-service 자체는 실제 Socket.IO 서버를 갖고 있으며
+  // 그 종단 간 동작은 백엔드 쪽에서 별도로 검증했다.
   await page.route("**/socket.io/**", async (route) => {
     socketRequestSeen = true;
     await route.abort("connectionrefused");

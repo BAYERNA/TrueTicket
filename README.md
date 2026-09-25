@@ -38,11 +38,17 @@ mobile/verification-app Flutter (현장 검표 앱)
 | AND 엔진 스코어 조인 | Kafka | bot-detection-service·resale-monitor-service → notification-service |
 | 외부 요청 진입점 | Spring Cloud Gateway | Rate Limiting으로 대기열 진입 전 1차 방어 |
 | 서비스 디스커버리 | Eureka | Client-side Service Discovery |
+| 대기열 실시간 순번 | Socket.IO (netty-socketio) | queue-service가 REST와 별개 포트(9092)로 노출, 게이트웨이가 `/socket.io/**`를 프록시 |
 
 사용자 요청은 ticket-service가 발급한 HS256 JWT로 인증하며, Gateway와 각 서비스가
 동일한 issuer·서명을 다시 검증한다. `USER`, `STAFF`, `ADMIN` 역할을 구분하고 사용자별
 예매·신고·알림 API는 JWT의 `sub`를 사용하므로 요청 본문으로 다른 사용자 ID를 위조할 수 없다.
 서비스 간 호출은 별도의 `X-Internal-Api-Key`로 보호한다.
+
+queue-service의 Socket.IO 서버(포트 9092, `QUEUE_SOCKET_PORT`로 변경 가능)는 REST와
+동일한 JWT를 쿼리 파라미터(`token`, `eventId`)로 받아 핸드셰이크 시점에 검증한다.
+대기열 참여/입장 허용으로 상태가 바뀌면 접속 중인 사용자 각자에게 자신의 순번을
+개별로 push하며, 연결에 실패하면 프론트엔드는 기존 3초 REST 폴링으로 자동 폴백한다.
 
 Kafka의 at-least-once 전달로 같은 이벤트가 재전송돼도
 `(reservation_session_id, listing_id)` 유니크 인덱스와 `ON CONFLICT DO NOTHING`으로
@@ -115,6 +121,25 @@ Spring과 FastAPI 서비스의 분산 trace는 OTLP/HTTP로 Tempo에 전송되�
 - Grafana: http://localhost:3001 (기본 계정 admin/admin, 익명 뷰어 접근 허용) —
   `TrueTicket — 서비스 개요` 대시보드가 자동 프로비저닝되어 서비스 UP 상태, 요청
   처리량, 평균 지연시간, JVM 힙 메모리를 보여준다.
+
+## 리버스 프록시 (Nginx)
+
+`docker compose up -d`로 함께 뜨는 `nginx` 컨테이너가 http://localhost:8000 에서
+호스트에서 직접 실행 중인 gateway-service(8080)로 리버스 프록시한다
+(`nginx/nginx.conf`). REST API뿐 아니라 `/socket.io/**` 같은 WebSocket 업그레이드
+요청도 그대로 통과시킨다.
+
+## API 문서 (OpenAPI / Swagger UI)
+
+gateway-service를 포함한 4개 Core Domain 서비스 모두 springdoc으로 OpenAPI를
+노출한다. 인증 없이 접근 가능하다.
+
+| 서비스 | Swagger UI |
+|---|---|
+| ticket-service | http://localhost:8081/swagger-ui.html |
+| queue-service | http://localhost:8082/swagger-ui.html |
+| notification-service | http://localhost:8084/swagger-ui.html |
+| gateway-service | http://localhost:8080/swagger-ui.html |
 
 ## 검증
 

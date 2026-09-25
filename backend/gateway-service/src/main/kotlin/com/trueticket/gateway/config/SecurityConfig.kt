@@ -28,6 +28,12 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeExchange {
                 it.pathMatchers("/api/auth/**", "/actuator/health", "/actuator/info").permitAll()
+                it.pathMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                // Socket.IO 핸드셰이크는 쿼리 파라미터로 전달된 JWT를 queue-service의
+                // AuthorizationListener가 직접 검증한다(SocketIOConfig 참고) — WebSocket
+                // 업그레이드 요청은 Authorization 헤더를 실어 보낼 수 없어 게이트웨이의
+                // Bearer 토큰 필터를 그대로 적용할 수 없다.
+                it.pathMatchers("/socket.io/**").permitAll()
                 it.pathMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 it.pathMatchers(HttpMethod.POST, "/api/payments/webhooks/mock").permitAll()
                 it.pathMatchers("/api/resale-monitor/**", "/api/judgments/**").hasRole("ADMIN")

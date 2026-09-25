@@ -1,6 +1,8 @@
 package com.trueticket.queue.service
 
 import com.trueticket.queue.dto.QueueStatusResponse
+import com.trueticket.queue.event.QueueChangedEvent
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -15,6 +17,7 @@ import java.time.Instant
 @Service
 class VirtualQueueService(
     private val redisTemplate: StringRedisTemplate,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
@@ -27,6 +30,7 @@ class VirtualQueueService(
     fun join(eventId: String, userId: String): QueueStatusResponse {
         val zSetOps = redisTemplate.opsForZSet()
         zSetOps.addIfAbsent(waitingKey(eventId), userId, Instant.now().toEpochMilli().toDouble())
+        eventPublisher.publishEvent(QueueChangedEvent(eventId))
         return status(eventId, userId)
     }
 
@@ -53,6 +57,10 @@ class VirtualQueueService(
         candidates.forEach { userId ->
             zSetOps.remove(waitingKey(eventId), userId)
             redisTemplate.opsForValue().set(admittedKey(eventId, userId), "1", ADMITTED_TTL)
+        }
+
+        if (candidates.isNotEmpty()) {
+            eventPublisher.publishEvent(QueueChangedEvent(eventId))
         }
 
         return candidates.toList()
