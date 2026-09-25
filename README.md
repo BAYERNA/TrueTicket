@@ -82,9 +82,13 @@ cd ai/bot-detection-service && uvicorn app.main:app --reload --port 8091
 cd ai/resale-monitor-service && uvicorn app.main:app --reload --port 8092
 cd ai/verification-service && uvicorn app.main:app --reload --port 8093
 
-# 5. 프론트엔드
-cd frontend/web && npm install && npm run dev
+# 5. 프론트엔드 (frontend/web/.env.local.example을 .env.local로 복사)
+cd frontend/web && pnpm install && pnpm run dev
 ```
+
+`.env.local`의 `NEXT_PUBLIC_SENTRY_DSN`/`SENTRY_DSN`은 비워두면 Sentry SDK가 조용히
+비활성 상태로 동작한다(에러를 그냥 버림) — 실제 운영 배포 시에만 Sentry 프로젝트의
+DSN 값을 채워 넣으면 된다.
 
 ### AI Domain 스키마 마이그레이션
 
@@ -116,7 +120,7 @@ Spring과 FastAPI 서비스의 분산 trace는 OTLP/HTTP로 Tempo에 전송되�
 
 ```bash
 cd backend && ./gradlew test
-cd frontend/web && npm ci && npm run lint && npm run build
+cd frontend/web && pnpm install --frozen-lockfile && pnpm run lint && pnpm run test && pnpm run build
 ```
 
 백엔드 CI는 Testcontainers로 실제 PostgreSQL 16에 Flyway 마이그레이션과 주요 제약을 검증하고,
