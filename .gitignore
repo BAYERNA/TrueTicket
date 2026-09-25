@@ -1,0 +1,70 @@
+### Gradle / Kotlin / Java ###
+.gradle/
+**/build/
+!src/**/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.kotlin/
+
+### IDE ###
+.idea/
+*.iml
+*.iws
+.vscode/
+.DS_Store
+
+### Python ###
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+*.pt
+*.pth
+*.onnx
+
+### Node / Next.js ###
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Flutter / Dart ###
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+*.g.dart
+
+### Env / Secrets ###
+*.env
+.env
+secrets/
+*.pem
+*.p12
+
+### Docker volumes (local dev data) ###
+infra-data/
+
+### Kubernetes (local secret values, never commit) ###
+k8s/secret.yaml
+
+### Terraform ###
+infra/aws/.terraform/
+infra/aws/.terraform.lock.hcl
+infra/aws/terraform.tfvars
+infra/aws/*.tfstate
+infra/aws/*.tfstate.*
+infra/aws/*.tfplan

@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Kotlin / Gradle)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew compileKotlin compileTestKotlin test --console=plain
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.33.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run test
+      # next build performs its own TypeScript check (and needs .next/types to exist
+      # first for the generated PageProps/LayoutProps helpers) — a separate,
+      # standalone `tsc --noEmit` run before this fails for exactly that reason.
+      - run: pnpm run build
+      # Storybook 스토리는 Next.js 라우팅과 무관하지만, 컴포넌트가 바뀌면서 깨지는
+      # 것을 잡아내기 위해 실제로 빌드해본다.
+      - run: pnpm run build-storybook
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e
+
+  ai-services:
+    name: AI Domain (Python + Alembic)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ai_service
+          POSTGRES_USER: ai_service
+          POSTGRES_PASSWORD: ai_service
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ai_service -d ai_service"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    strategy:
+      matrix:
+        service: [bot-detection-service, resale-monitor-service, verification-service]
+    defaults:
+      run:
+        working-directory: ai/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install schema validation dependencies
+        run: pip install alembic==1.14.1 sqlalchemy==2.0.35 psycopg2-binary==2.9.9 pydantic-settings==2.5.2 PyJWT==2.10.1
+      - name: Compile application and migration code
+        run: python -m compileall -q app migrations
+      - name: Validate migrations on PostgreSQL
+        env:
+          DATABASE_URL: postgresql+psycopg2://ai_service:ai_service@localhost:5432/ai_service
+        run: |
+          alembic upgrade head
+          alembic check
+          python -m unittest discover -s tests -v
+          alembic downgrade base
+          alembic upgrade head

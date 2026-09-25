@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verification-service
+  namespace: trueticket
+  labels:
+    app: verification-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: verification-service
+  template:
+    metadata:
+      labels:
+        app: verification-service
+    spec:
+      containers:
+        - name: verification-service
+          image: ghcr.io/trueticket/verification-service:latest # 실제 레지스트리 이미지로 교체
+          ports:
+            - containerPort: 8093
+          envFrom:
+            - configMapRef:
+                name: trueticket-config
+            - secretRef:
+                name: trueticket-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: trueticket-secrets
+                  key: VERIFICATION_DATABASE_URL
+            - name: FACE_MATCH_THRESHOLD
+              value: "0.75"
+            - name: YOLO_FACE_MODEL_PATH
+              value: "yolov8n-face.pt"
+            - name: SNAPSHOT_RETENTION_DAYS
+              value: "30"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo:4318/v1/traces"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8093
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8093
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            # YOLOv8 얼굴 인식 추론 때문에 다른 AI 서비스보다 더 많은 CPU/메모리가 필요하다.
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2
+              memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: verification-service
+  namespace: trueticket
+spec:
+  selector:
+    app: verification-service
+  ports:
+    - port: 8093
+      targetPort: 8093

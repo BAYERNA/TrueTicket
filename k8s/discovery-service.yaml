@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discovery-service
+  namespace: trueticket
+  labels:
+    app: discovery-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discovery-service
+  template:
+    metadata:
+      labels:
+        app: discovery-service
+    spec:
+      containers:
+        - name: discovery-service
+          image: ghcr.io/trueticket/discovery-service:latest # 실제 레지스트리 이미지로 교체
+          ports:
+            - containerPort: 8761
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discovery-service
+  namespace: trueticket
+spec:
+  selector:
+    app: discovery-service
+  ports:
+    - port: 8761
+      targetPort: 8761

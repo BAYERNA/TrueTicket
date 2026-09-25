@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bot-detection-service
+  namespace: trueticket
+  labels:
+    app: bot-detection-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bot-detection-service
+  template:
+    metadata:
+      labels:
+        app: bot-detection-service
+    spec:
+      containers:
+        - name: bot-detection-service
+          image: ghcr.io/trueticket/bot-detection-service:latest # 실제 레지스트리 이미지로 교체
+          ports:
+            - containerPort: 8091
+          envFrom:
+            - configMapRef:
+                name: trueticket-config
+            - secretRef:
+                name: trueticket-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: trueticket-secrets
+                  key: BOT_DETECTION_DATABASE_URL
+            - name: ACQUISITION_FRAUD_THRESHOLD
+              value: "0.7"
+            - name: MODEL_VERSION
+              value: "bot-rules-v1"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo:4318/v1/traces"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8091
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8091
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bot-detection-service
+  namespace: trueticket
+spec:
+  selector:
+    app: bot-detection-service
+  ports:
+    - port: 8091
+      targetPort: 8091

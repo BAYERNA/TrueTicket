@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-service
+  namespace: trueticket
+  labels:
+    app: queue-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: queue-service
+  template:
+    metadata:
+      labels:
+        app: queue-service
+    spec:
+      containers:
+        - name: queue-service
+          image: ghcr.io/trueticket/queue-service:latest # 실제 레지스트리 이미지로 교체
+          ports:
+            - name: http
+              containerPort: 8082
+            - name: socketio
+              containerPort: 9092
+          envFrom:
+            - configMapRef:
+                name: trueticket-config
+            - secretRef:
+                name: trueticket-secrets
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-service
+  namespace: trueticket
+spec:
+  selector:
+    app: queue-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+---
+# 서블릿 컨테이너(REST API)와 별개의 포트에서 뜨는 Socket.IO 서버 전용 Service.
+# 같은 파드를 가리키지만, 게이트웨이가 /socket.io/**를 이쪽으로 고정 라우팅한다
+# (gateway-service의 application.yml, QUEUE_SOCKET_URI 참고). Eureka 로드밸런싱
+# 대상이 아니라서 REST API Service와 분리했다.
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-service-socket
+  namespace: trueticket
+spec:
+  selector:
+    app: queue-service
+  ports:
+    - port: 9092
+      targetPort: 9092

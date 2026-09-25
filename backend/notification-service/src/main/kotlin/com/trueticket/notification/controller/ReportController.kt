@@ -1,0 +1,40 @@
+package com.trueticket.notification.controller
+
+import com.trueticket.notification.domain.Report
+import com.trueticket.notification.repository.ReportRepository
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.web.bind.annotation.*
+import java.util.UUID
+
+data class CreateReportRequest(
+    val targetListingId: UUID?,
+    @field:NotBlank val reportReason: String,
+)
+
+/** FR-013: 이상거래 신고 접수. */
+@RestController
+@RequestMapping("/api/reports")
+class ReportController(
+    private val reportRepository: ReportRepository,
+) {
+
+    @PostMapping
+    fun submit(
+        @AuthenticationPrincipal jwt: Jwt,
+        @Valid @RequestBody request: CreateReportRequest,
+    ): ResponseEntity<Report> {
+        val report = reportRepository.save(
+            Report(
+                reporterUserId = UUID.fromString(jwt.subject),
+                targetListingId = request.targetListingId,
+                reportReason = request.reportReason,
+            )
+        )
+        return ResponseEntity.status(HttpStatus.CREATED).body(report)
+    }
+}

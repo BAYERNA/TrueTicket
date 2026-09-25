@@ -1,0 +1,50 @@
+server:
+  port: 8082
+
+# Socket.IO는 서블릿 컨테이너가 아니라 별도의 Netty 서버로 뜬다(SocketIOConfig 참고).
+socketio:
+  port: ${QUEUE_SOCKET_PORT:9092}
+
+spring:
+  application:
+    name: queue-service
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+internal:
+  # FR-001: admitNext는 관리자/스케줄러 전용 API다. 게이트웨이 라우팅에서도 제외되지만,
+  # queue-service를 직접 호출하는 경로(사설망 침투 등)까지 막기 위한 2차 방어선.
+  admit-api-key: ${INTERNAL_ADMIT_API_KEY:local-dev-admit-key}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:trueticket}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
