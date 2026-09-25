@@ -45,6 +45,9 @@ jobs:
       # first for the generated PageProps/LayoutProps helpers) — a separate,
       # standalone `tsc --noEmit` run before this fails for exactly that reason.
       - run: pnpm run build
+      # Storybook 스토리는 Next.js 라우팅과 무관하지만, 컴포넌트가 바뀌면서 깨지는
+      # 것을 잡아내기 위해 실제로 빌드해본다.
+      - run: pnpm run build-storybook
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run test:e2e
 
