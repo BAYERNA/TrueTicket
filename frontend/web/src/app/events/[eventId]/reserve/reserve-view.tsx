@@ -36,8 +36,7 @@ export function ReserveView({ eventId }: { eventId: string }) {
 
   // FR-001: 진입 시 가상대기열에 배치하고 실시간 순번을 안내한다.
   const joinQueue = useMutation({
-    mutationFn: () =>
-      apiClient.post(`/api/queue/${eventId}/join`, undefined, QueueStatusResponseSchema),
+    mutationFn: () => apiClient.post(`/api/queue/${eventId}/join`, undefined, QueueStatusResponseSchema),
   });
 
   useEffect(() => {

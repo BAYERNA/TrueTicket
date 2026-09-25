@@ -1,31 +1,37 @@
+import axios, { AxiosError } from "axios";
 import type { ZodType } from "zod";
 import { useSessionStore } from "@/store/useSessionStore";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-async function request<T>(path: string, options?: RequestInit, schema?: ZodType<T>): Promise<T> {
-  const accessToken = useSessionStore.getState().accessToken;
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...options?.headers,
-    },
-  });
+const httpClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
 
-  if (!response.ok) {
-    if (response.status === 401 && accessToken) {
+// 매 요청마다 최신 access token을 헤더에 싣는다 — 컴포넌트마다 직접 토큰을 읽어 넣지
+// 않도록 공통 인터셉터 한 곳에서 처리한다.
+httpClient.interceptors.request.use((config) => {
+  const accessToken = useSessionStore.getState().accessToken;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+// 401은 토큰 만료/무효를 뜻하므로 공통으로 세션을 정리한다 — 각 화면이 401을 개별
+// 처리할 필요가 없다.
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401 && useSessionStore.getState().accessToken) {
       useSessionStore.getState().logout();
     }
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-  }
+    return Promise.reject(error);
+  },
+);
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const data = await response.json();
+function parse<T>(data: unknown, schema: ZodType<T> | undefined, path: string): T {
   if (!schema) {
     return data as T;
   }
@@ -42,7 +48,15 @@ async function request<T>(path: string, options?: RequestInit, schema?: ZodType<
 
 /** 모든 요청은 Spring Cloud Gateway(단일 진입점)를 거친다. */
 export const apiClient = {
-  get: <T>(path: string, schema?: ZodType<T>) => request<T>(path, undefined, schema),
-  post: <T>(path: string, body?: unknown, schema?: ZodType<T>) =>
-    request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }, schema),
+  get: async <T>(path: string, schema?: ZodType<T>): Promise<T> => {
+    const response = await httpClient.get(path);
+    return parse(response.data, schema, path);
+  },
+  post: async <T>(path: string, body?: unknown, schema?: ZodType<T>): Promise<T> => {
+    const response = await httpClient.post(path, body);
+    if (response.status === 204) {
+      return undefined as T;
+    }
+    return parse(response.data, schema, path);
+  },
 };

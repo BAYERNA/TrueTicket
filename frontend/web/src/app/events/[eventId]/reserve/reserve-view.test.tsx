@@ -26,12 +26,30 @@ const admittedQueueStatus: QueueStatusResponse = {
 };
 
 const seats: Seat[] = [
-  { id: "seat-1", eventId: "evt1", seatSection: "A", seatRow: "1", seatNumber: 1, price: 50000, status: "AVAILABLE" },
-  { id: "seat-2", eventId: "evt1", seatSection: "A", seatRow: "1", seatNumber: 2, price: 50000, status: "SOLD" },
+  {
+    id: "seat-1",
+    eventId: "evt1",
+    seatSection: "A",
+    seatRow: "1",
+    seatNumber: 1,
+    price: 50000,
+    status: "AVAILABLE",
+  },
+  {
+    id: "seat-2",
+    eventId: "evt1",
+    seatSection: "A",
+    seatRow: "1",
+    seatNumber: 2,
+    price: 50000,
+    status: "SOLD",
+  },
 ];
 
 function renderReserveView() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <ReserveView eventId="evt1" />
@@ -42,7 +60,9 @@ function renderReserveView() {
 describe("ReserveView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useSessionStore.getState().login({ userId: "u1", email: "a@b.com", roles: ["USER"], accessToken: "token" });
+    useSessionStore
+      .getState()
+      .login({ userId: "u1", email: "a@b.com", roles: ["USER"], accessToken: "token" });
 
     mockedApiClient.post.mockImplementation((path: string) => {
       if (path.endsWith("/join")) return Promise.resolve(admittedQueueStatus);

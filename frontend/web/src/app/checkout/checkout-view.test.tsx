@@ -29,7 +29,9 @@ const pendingPayment: PaymentResponse = {
 };
 
 function renderCheckoutView() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <CheckoutView />

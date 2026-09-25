@@ -29,9 +29,9 @@ export function ListingDetailView({ listingId }: { listingId: string }) {
             <dd>{listing.priceAnomalyScore.toFixed(2)}</dd>
           </dl>
           <p className="mt-4 text-xs text-zinc-500">
-            취득 부정성 스코어와의 AND 판정 결과는 notification-service의
-            `/api/judgments/session/{"{reservationSessionId}"}` 에서 예매 세션 ID로 조회한다.
-            게시물이 특정 예매 세션과 매칭된 경우에만 판정 이력이 존재한다.
+            취득 부정성 스코어와의 AND 판정 결과는 notification-service의 `/api/judgments/session/
+            {"{reservationSessionId}"}` 에서 예매 세션 ID로 조회한다. 게시물이 특정 예매 세션과 매칭된
+            경우에만 판정 이력이 존재한다.
           </p>
         </div>
       )}

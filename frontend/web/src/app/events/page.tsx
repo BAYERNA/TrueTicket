@@ -7,7 +7,11 @@ import type { TrueTicketEvent } from "@/types/domain";
 
 // SCR-02: 예매 가능한 공연/경기 목록.
 export default function EventsPage() {
-  const { data: events, isPending, error } = useQuery({
+  const {
+    data: events,
+    isPending,
+    error,
+  } = useQuery({
     queryKey: ["events"],
     queryFn: () => apiClient.get<TrueTicketEvent[]>("/api/events"),
   });

@@ -8,8 +8,8 @@ export default function Home() {
       </p>
       <h1 className="text-4xl font-semibold tracking-tight">TrueTicket</h1>
       <p className="max-w-2xl text-zinc-600 dark:text-zinc-400">
-        취득 부정성 스코어(예매 단계 봇/매크로 탐지)와 상습 판매 스코어(유통 단계 재판매
-        이상탐지)를 AND 엔진으로 결합해, 가격만으로 판단하지 않는 암표 판정을 제공합니다.
+        취득 부정성 스코어(예매 단계 봇/매크로 탐지)와 상습 판매 스코어(유통 단계 재판매 이상탐지)를 AND
+        엔진으로 결합해, 가격만으로 판단하지 않는 암표 판정을 제공합니다.
       </p>
       <div className="flex gap-4">
         <Link

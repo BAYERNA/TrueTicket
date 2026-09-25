@@ -63,8 +63,18 @@ export default function BotLogsPage() {
                   <p className="text-xs font-medium">{score.reviewLabel}</p>
                 ) : (
                   <div className="mt-1 flex gap-1">
-                    <button className="rounded border px-2 py-1 text-xs" onClick={() => feedback.mutate({ scoreId: score.scoreId, label: "TRUE_POSITIVE" })}>정탐</button>
-                    <button className="rounded border px-2 py-1 text-xs" onClick={() => feedback.mutate({ scoreId: score.scoreId, label: "FALSE_POSITIVE" })}>오탐</button>
+                    <button
+                      className="rounded border px-2 py-1 text-xs"
+                      onClick={() => feedback.mutate({ scoreId: score.scoreId, label: "TRUE_POSITIVE" })}
+                    >
+                      정탐
+                    </button>
+                    <button
+                      className="rounded border px-2 py-1 text-xs"
+                      onClick={() => feedback.mutate({ scoreId: score.scoreId, label: "FALSE_POSITIVE" })}
+                    >
+                      오탐
+                    </button>
                   </div>
                 )}
               </td>
