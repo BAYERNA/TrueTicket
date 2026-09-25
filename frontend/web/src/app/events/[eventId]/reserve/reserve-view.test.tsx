@@ -15,6 +15,17 @@ vi.mock("@/lib/api-client", () => ({
   apiClient: { get: vi.fn(), post: vi.fn() },
 }));
 
+// queue-service에는 아직 실시간 서버가 없어 실제 연결은 항상 실패한다 — 컴포넌트
+// 테스트에서는 진짜 소켓 시도로 인한 비결정성을 피하기 위해 최소 스텁으로 대체한다.
+// socket.io-client 자체의 연결 동작은 useQueueSocket 훅이 아니라 라이브러리의 책임이다.
+vi.mock("socket.io-client", () => ({
+  io: () => ({
+    on: vi.fn(),
+    disconnect: vi.fn(),
+    io: { on: vi.fn() },
+  }),
+}));
+
 const mockedApiClient = vi.mocked(apiClient);
 
 const admittedQueueStatus: QueueStatusResponse = {

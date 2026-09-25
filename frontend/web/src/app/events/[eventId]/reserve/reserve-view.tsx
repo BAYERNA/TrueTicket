@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiClient } from "@/lib/api-client";
+import { useQueueSocket } from "@/hooks/useQueueSocket";
 import { useSessionStore } from "@/store/useSessionStore";
 import { QueueStatusResponseSchema, ReservationResponseSchema, SeatListSchema } from "@/types/domain";
 
@@ -49,12 +50,20 @@ export function ReserveView({ eventId }: { eventId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, userId]);
 
-  const { data: queueStatus } = useQuery({
+  const { data: polledQueueStatus } = useQuery({
     queryKey: ["queue-status", eventId, userId],
     queryFn: () => apiClient.get(`/api/queue/${eventId}/status`, QueueStatusResponseSchema),
     enabled: !!userId && joinQueue.isSuccess,
     refetchInterval: 3000,
   });
+
+  // queue-service에 아직 실시간 서버가 없어 실제로는 항상 폴링으로 폴백하지만,
+  // 연결 자체는 진짜로 시도한다 — 나중에 서버가 생기면 이 훅만으로 실시간 갱신이 된다.
+  const { connectionState: socketState, liveStatus } = useQueueSocket(
+    eventId,
+    !!userId && joinQueue.isSuccess,
+  );
+  const queueStatus = liveStatus ?? polledQueueStatus;
 
   // FR-002-1: 좌석은 JPA Optimistic Lock으로 보호되므로 목록은 예매 시도 직전까지 최신 상태를 유지해야 한다.
   const { data: seats, isPending: seatsLoading } = useQuery({
@@ -87,6 +96,13 @@ export function ReserveView({ eventId }: { eventId: string }) {
       {queueStatus && !queueStatus.admitted && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           대기 중입니다. 현재 순번: {queueStatus.rank} / 대기 인원: {queueStatus.waitingCount}
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            {socketState === "connected"
+              ? "실시간 연결됨"
+              : socketState === "connecting"
+                ? "실시간 연결 시도 중..."
+                : "실시간 연결 불가 — 3초마다 자동 갱신 중"}
+          </p>
         </div>
       )}
 
