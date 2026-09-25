@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiClient } from "@/lib/api-client";
 import { useSessionStore } from "@/store/useSessionStore";
-import type { QueueStatusResponse, ReservationResponse, Seat } from "@/types/domain";
+import { QueueStatusResponseSchema, ReservationResponseSchema, SeatListSchema } from "@/types/domain";
 
 export function ReserveView({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -37,7 +37,7 @@ export function ReserveView({ eventId }: { eventId: string }) {
   // FR-001: 진입 시 가상대기열에 배치하고 실시간 순번을 안내한다.
   const joinQueue = useMutation({
     mutationFn: () =>
-      apiClient.post<QueueStatusResponse>(`/api/queue/${eventId}/join`),
+      apiClient.post(`/api/queue/${eventId}/join`, undefined, QueueStatusResponseSchema),
   });
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function ReserveView({ eventId }: { eventId: string }) {
 
   const { data: queueStatus } = useQuery({
     queryKey: ["queue-status", eventId, userId],
-    queryFn: () => apiClient.get<QueueStatusResponse>(`/api/queue/${eventId}/status`),
+    queryFn: () => apiClient.get(`/api/queue/${eventId}/status`, QueueStatusResponseSchema),
     enabled: !!userId && joinQueue.isSuccess,
     refetchInterval: 3000,
   });
@@ -60,17 +60,17 @@ export function ReserveView({ eventId }: { eventId: string }) {
   // FR-002-1: 좌석은 JPA Optimistic Lock으로 보호되므로 목록은 예매 시도 직전까지 최신 상태를 유지해야 한다.
   const { data: seats, isPending: seatsLoading } = useQuery({
     queryKey: ["event-seats", eventId],
-    queryFn: () => apiClient.get<Seat[]>(`/api/events/${eventId}/seats`),
+    queryFn: () => apiClient.get(`/api/events/${eventId}/seats`, SeatListSchema),
     enabled: !queueStatus || queueStatus.admitted !== false,
   });
 
   const reserve = useMutation({
     mutationFn: (seatId: string) =>
-      apiClient.post<ReservationResponse>("/api/reservations", {
-        eventId,
-        seatId,
-        reservationSessionId,
-      }),
+      apiClient.post(
+        "/api/reservations",
+        { eventId, seatId, reservationSessionId },
+        ReservationResponseSchema,
+      ),
     onSuccess: (reservation) => {
       router.push(`/checkout?reservationId=${reservation.reservationId}`);
     },

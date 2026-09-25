@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiClient } from "@/lib/api-client";
-import type { PaymentResponse } from "@/types/domain";
+import { PaymentResponseSchema, type PaymentResponse } from "@/types/domain";
 
 export function CheckoutView() {
   const searchParams = useSearchParams();
@@ -14,15 +14,17 @@ export function CheckoutView() {
 
   const prepare = useMutation({
     mutationFn: () =>
-      apiClient.post<PaymentResponse>(`/api/payments/${reservationId}/prepare`, {
-        idempotencyKey: crypto.randomUUID(),
-        paymentMethod: "MOCK_CARD",
-      }),
+      apiClient.post(
+        `/api/payments/${reservationId}/prepare`,
+        { idempotencyKey: crypto.randomUUID(), paymentMethod: "MOCK_CARD" },
+        PaymentResponseSchema,
+      ),
     onSuccess: setPayment,
   });
 
   const complete = useMutation({
-    mutationFn: () => apiClient.post<PaymentResponse>(`/api/payments/${payment?.paymentId}/mock-complete`),
+    mutationFn: () =>
+      apiClient.post(`/api/payments/${payment?.paymentId}/mock-complete`, undefined, PaymentResponseSchema),
     onSuccess: setPayment,
   });
 

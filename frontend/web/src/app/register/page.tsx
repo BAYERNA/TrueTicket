@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { apiClient } from "@/lib/api-client";
 import { useSessionStore } from "@/store/useSessionStore";
-import type { AuthResponse } from "@/types/domain";
+import { AuthResponseSchema } from "@/types/domain";
 
 interface RegisterFormValues {
   email: string;
@@ -25,7 +25,7 @@ export default function RegisterPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      const session = await apiClient.post<AuthResponse>("/api/auth/register", values);
+      const session = await apiClient.post("/api/auth/register", values, AuthResponseSchema);
       login({
         userId: session.userId,
         email: session.email,

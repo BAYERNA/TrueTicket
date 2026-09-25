@@ -36,6 +36,7 @@ jobs:
           cache-dependency-path: frontend/web/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       # next build performs its own TypeScript check (and needs .next/types to exist
       # first for the generated PageProps/LayoutProps helpers) — a separate,
       # standalone `tsc --noEmit` run before this fails for exactly that reason.
