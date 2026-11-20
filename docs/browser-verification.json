@@ -1,0 +1,6 @@
+{
+  "scenario": "reset_scan_match_approve_cancel_redistribute_report",
+  "mode": "local_rules",
+  "elapsed_ms": 39222,
+  "under_five_minutes": true
+}

@@ -1,0 +1,280 @@
+{
+  "summary": {
+    "status": "completed",
+    "validation_scope": "local_rules",
+    "ai_acceptance_verified": false,
+    "measured_at": "2026-11-19T13:51:11.842445+00:00",
+    "extraction_model": "local-rules-v1",
+    "embedding_model": null,
+    "returned_models": [],
+    "metrics": {
+      "post_count": 80,
+      "schema_valid": 80,
+      "field_accuracy": 1.0,
+      "field_accuracy_by_name": {
+        "price_per_ticket_krw": 1.0,
+        "seats": 1.0,
+        "quantity": 1.0
+      },
+      "seat_posts": 74,
+      "booking_match_accuracy": 1.0,
+      "positive_count": 25,
+      "resale_detection_rate": 1.0,
+      "normal_count": 20,
+      "normal_false_positive_rate": 0.0,
+      "seller_cluster_accuracy": 1.0,
+      "masking_cases": 10,
+      "masking_residual_values": 0,
+      "injection_matches": 5,
+      "injection_cases": 5,
+      "risks": {
+        "중간": 25,
+        "낮음": 20,
+        "높음": 25,
+        "확인 불가": 10
+      },
+      "matching_failures": {
+        "cancelled_booking": 3,
+        "missing_price": 4,
+        "seat_not_found": 7,
+        "missing_seats": 6
+      }
+    },
+    "checks": {
+      "schema_100_percent": true,
+      "fields_90_percent": true,
+      "booking_match_95_percent": true,
+      "seller_cluster_80_percent": true,
+      "detection_90_percent": true,
+      "false_positive_max_5_percent": true,
+      "masking_zero_residual": true,
+      "injection_five_matches": true,
+      "r1_equal_10": true,
+      "r1_plus_one_3": true,
+      "r3_double_5": true
+    },
+    "api_requests": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "elapsed_ms": 174,
+    "resumed_extractions": 0,
+    "usage_scope": "이번 실행에서 새로 전송한 API 요청·토큰과 실행 시간",
+    "note": "가상 평가셋 실측입니다. 규칙 데모 결과는 AI 모델 성능으로 사용하지 않습니다."
+  },
+  "wrong_cases": [],
+  "boundaries": {
+    "r1_equal": [
+      {
+        "post_id": "post-002",
+        "passes": true
+      },
+      {
+        "post_id": "post-013",
+        "passes": true
+      },
+      {
+        "post_id": "post-014",
+        "passes": true
+      },
+      {
+        "post_id": "post-015",
+        "passes": true
+      },
+      {
+        "post_id": "post-024",
+        "passes": true
+      },
+      {
+        "post_id": "post-045",
+        "passes": true
+      },
+      {
+        "post_id": "post-046",
+        "passes": true
+      },
+      {
+        "post_id": "post-056",
+        "passes": true
+      },
+      {
+        "post_id": "post-057",
+        "passes": true
+      },
+      {
+        "post_id": "post-076",
+        "passes": true
+      }
+    ],
+    "r1_plus_one": [
+      {
+        "post_id": "post-054",
+        "passes": true
+      },
+      {
+        "post_id": "post-067",
+        "passes": true
+      },
+      {
+        "post_id": "post-070",
+        "passes": true
+      }
+    ],
+    "r3_double": [
+      {
+        "post_id": "post-003",
+        "passes": true
+      },
+      {
+        "post_id": "post-021",
+        "passes": true
+      },
+      {
+        "post_id": "post-026",
+        "passes": true
+      },
+      {
+        "post_id": "post-030",
+        "passes": true
+      },
+      {
+        "post_id": "post-078",
+        "passes": true
+      }
+    ]
+  },
+  "reference_post": {
+    "post_id": "post-017",
+    "extraction": {
+      "fields": {
+        "event_id": "event-001",
+        "session_id": "event-001-session-01",
+        "seats": [
+          "A-01-01",
+          "A-01-02"
+        ],
+        "quantity": 2,
+        "price_per_ticket_krw": 137000,
+        "trade_method": "아옮",
+        "confidence": {
+          "event_id": 0.9,
+          "session_id": 0.9,
+          "seats": 0.9,
+          "quantity": 0.9,
+          "price_per_ticket_krw": 0.9,
+          "trade_method": 0.9
+        },
+        "evidence": {
+          "seats": [
+            "A-01-01",
+            "A-01-02"
+          ],
+          "quantity": [
+            "2장"
+          ],
+          "price_per_ticket_krw": [
+            "합계 274,000원",
+            "2장"
+          ]
+        }
+      },
+      "schema_valid": true,
+      "status": "extracted",
+      "reason": null,
+      "provider": "local",
+      "source": "local_rules",
+      "model_requested": "local-rules-v1",
+      "model_returned": null,
+      "attempts": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "fingerprint": "271daf0473e2822aa8db2500c15d79d0d6f9a88c0b3509eb678983bf155f4d4e",
+      "slang": [
+        {
+          "term": "아옮",
+          "meaning": "계정 옮기기를 가리키는 표현"
+        }
+      ]
+    },
+    "match": {
+      "matched_booking_ids": [
+        "booking-0001",
+        "booking-0002"
+      ],
+      "bookings": [
+        {
+          "booking_id": "booking-0001",
+          "event_id": "event-001",
+          "session_id": "event-001-session-01",
+          "account_id": "account-001",
+          "seat": "A-01-01",
+          "grade": "R",
+          "price_paid": 112000,
+          "booked_at": "2026-11-12T19:00:00+09:00",
+          "status": "confirmed",
+          "nickname": "가상관객001",
+          "bot": {
+            "score": 0.84,
+            "evidence": {
+              "click_interval_count": 4,
+              "click_interval_cv": 0.0,
+              "automation_signature_count": 2
+            }
+          }
+        },
+        {
+          "booking_id": "booking-0002",
+          "event_id": "event-001",
+          "session_id": "event-001-session-01",
+          "account_id": "account-001",
+          "seat": "A-01-02",
+          "grade": "R",
+          "price_paid": 112000,
+          "booked_at": "2026-11-12T19:00:11+09:00",
+          "status": "confirmed",
+          "nickname": "가상관객001",
+          "bot": {
+            "score": 0.84,
+            "evidence": {
+              "click_interval_count": 4,
+              "click_interval_cv": 0.0,
+              "automation_signature_count": 2
+            }
+          }
+        }
+      ],
+      "failure_reason": null
+    },
+    "risk": {
+      "risk_level": "높음",
+      "rule_hits": [
+        "R1",
+        "R2",
+        "R4"
+      ],
+      "evidence": {
+        "R1": {
+          "sale_price": 137000,
+          "purchase_prices": [
+            112000,
+            112000
+          ]
+        },
+        "R2": {
+          "unique_seats": 6,
+          "post_ids": [
+            "post-017",
+            "post-030",
+            "post-042",
+            "post-044",
+            "post-069"
+          ]
+        },
+        "R4": {
+          "max_bot_score": 0.84,
+          "threshold": 0.8
+        }
+      },
+      "above_cost_seat_count": 6
+    }
+  }
+}
