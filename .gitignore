@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+frontend/node_modules/
+frontend/dist/
+data/evaluation/t4_results.json
+data/evaluation/local_results.json
+data/evaluation/gemini_results.json
+data/evaluation/latest_results.json
+data/evaluation/gemini_progress.json

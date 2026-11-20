@@ -1,0 +1,8 @@
+.git
+.venv
+.env
+**/__pycache__
+**/node_modules
+**/*.sqlite3*
+data/evaluation/*results.json
+frontend/dist
