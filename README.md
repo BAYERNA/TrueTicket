@@ -1,8 +1,12 @@
-# TrueTicket 암표 대응 에이전트
+# TicketGuard AI · 관객 및 운영자 통합 시연
 
 외부 게시글을 내부 예매에 연결하고 운영자 승인 후 소명·취소·정가 재배분까지 처리하는 가상 데이터 해커톤 프로토타입이다. FastAPI·SQLite 단일 서버가 React 화면도 제공한다.
 
 기본 실행은 **규칙 데모**다. API 키 없이 전체 처리 흐름을 시연할 수 있다. Gemini를 선택하면 마스킹한 가상 게시글을 실제 모델로 분석한다. 규칙 데모의 결과에는 `local_rules`를 표시한다.
+
+## 관객과 운영자 연결
+
+[공개 시연](https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/)에서 세 가지 관객 점검 또는 한빛 콘서트의 검토 접수를 체험한다. 같은 운영자 브라우저로 접수함을 열어 접수번호와 두 좌석을 확인한다. 공개 공간은 합성 자료만 사용하며 원래 로컬 운영 DB와 별도로 시연 기록을 저장한다. 통합 접수함 코드는 [review-portal](review-portal/)에 있다. Python 관객 앱과 새로운 문장 10건의 실제 모델 대조 절차는 [audience/README.md](audience/README.md)에 있다.
 
 ## 실행
 

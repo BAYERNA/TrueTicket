@@ -1,0 +1,102 @@
+[
+  {
+    "id": "N01",
+    "text": "달무리 콘서트 2026-12-05, VIP석 한 장을 15만원에 양도합니다.",
+    "gold": {
+      "event_name": "달무리 콘서트",
+      "event_date": "2026-12-05",
+      "seat_grade": "VIP",
+      "asking_price_krw": 150000
+    }
+  },
+  {
+    "id": "N02",
+    "text": "뮤지컬 물안개, 2026년 12월 6일 공연 R석입니다. 장당 9만 5천 원에 드려요.",
+    "gold": {
+      "event_name": "뮤지컬 물안개",
+      "event_date": "2026-12-06",
+      "seat_grade": "R",
+      "asking_price_krw": 95000
+    }
+  },
+  {
+    "id": "N03",
+    "text": "2027-04-22 하늘폭스 vs 강빛볼츠 테이블석 두 장, 각각 65,000원입니다.",
+    "gold": {
+      "event_name": "하늘폭스 vs 강빛볼츠",
+      "event_date": "2027-04-22",
+      "seat_grade": "TABLE",
+      "asking_price_krw": 65000
+    }
+  },
+  {
+    "id": "N04",
+    "text": "초록빛 페스티벌 VIP석 두 장을 묶어 총액 320,000원으로 양도합니다.",
+    "gold": {
+      "event_name": "초록빛 페스티벌",
+      "event_date": null,
+      "seat_grade": "VIP",
+      "asking_price_krw": null
+    }
+  },
+  {
+    "id": "N05",
+    "text": "2026-12-14 고요의 밤 콘서트 한 장 8만원. 좌석 등급은 확인 중이에요.",
+    "gold": {
+      "event_name": "고요의 밤 콘서트",
+      "event_date": "2026-12-14",
+      "seat_grade": null,
+      "asking_price_krw": 80000
+    }
+  },
+  {
+    "id": "N06",
+    "text": "새벽바다 콘서트 R석 한 장을 양도합니다. 날짜와 가격은 미정이에요.",
+    "gold": {
+      "event_name": "새벽바다 콘서트",
+      "event_date": null,
+      "seat_grade": "R",
+      "asking_price_krw": null
+    }
+  },
+  {
+    "id": "N07",
+    "text": "2027-01-02 뮤지컬 종이달 VIP석 한 장 0원입니다. 무료 나눔해요.",
+    "gold": {
+      "event_name": "뮤지컬 종이달",
+      "event_date": "2027-01-02",
+      "seat_grade": "VIP",
+      "asking_price_krw": 0
+    }
+  },
+  {
+    "id": "N08",
+    "text": "2027-05-03 은하베어스 vs 서리윙스 테이블석, 장당 5만 2천 원입니다.",
+    "gold": {
+      "event_name": "은하베어스 vs 서리윙스",
+      "event_date": "2027-05-03",
+      "seat_grade": "TABLE",
+      "asking_price_krw": 52000
+    }
+  },
+  {
+    "id": "N09",
+    "text": "2026-12-28 유리숲 콘서트 R석 두 장입니다. 두 장 총액은 20만원, 장당 10만원입니다.",
+    "gold": {
+      "event_name": "유리숲 콘서트",
+      "event_date": "2026-12-28",
+      "seat_grade": "R",
+      "asking_price_krw": 100000
+    }
+  },
+  {
+    "id": "N10",
+    "text": "공연 한 장 45,000원에 양도합니다. 행사 이름, 날짜, 좌석은 아직 확인하지 못했어요.",
+    "gold": {
+      "event_name": null,
+      "event_date": null,
+      "seat_grade": null,
+      "asking_price_krw": 45000
+    }
+  }
+]
