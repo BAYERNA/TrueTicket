@@ -1,0 +1,25 @@
+{
+  "source_ref": [
+    {"id":"SRC-DEMO","publisher":"TicketGuard AI","title":"가상 시연 가격표·양도 정책","url":null,"retrieved_on":"2026-11-20","scope":"SP-FEST, SP-MUS, SP-BASE 시연","is_demo":1}
+  ],
+  "event": [
+    {"id":"EV-FEST-01","category":"PERFORMANCE","name":"별빛 페스티벌","event_date":"2026-12-12","venue":"가상 해변공원","organizer":"가상 기획사"},
+    {"id":"EV-MUS-01","category":"PERFORMANCE","name":"뮤지컬 밤의 서약","event_date":"2026-12-19","venue":"가상 극장","organizer":"가상 제작사"},
+    {"id":"EV-BASE-01","category":"SPORTS","name":"시티 블루스 vs 리버 레즈","event_date":"2027-04-03","venue":"가상 야구장","organizer":"가상 구단"}
+  ],
+  "price_rule": [
+    {"id":"PR-FEST-VIP","event_id":"EV-FEST-01","seat_grade":"VIP","list_price_krw":120000,"pricing_note":"VIP석 한 장","source_id":"SRC-DEMO"},
+    {"id":"PR-MUS-R","event_id":"EV-MUS-01","seat_grade":"R","list_price_krw":110000,"pricing_note":"R석 한 장","source_id":"SRC-DEMO"},
+    {"id":"PR-BASE-TABLE","event_id":"EV-BASE-01","seat_grade":"TABLE","list_price_krw":60000,"pricing_note":"테이블석 한 장","source_id":"SRC-DEMO"}
+  ],
+  "policy": [
+    {"id":"POL-FEST","event_id":"EV-FEST-01","transfer_status":"PROHIBITED","id_check_required":1,"notes":"양도 금지. 현장에서 예매자 신분증을 대조한다.","source_id":"SRC-DEMO"},
+    {"id":"POL-MUS","event_id":"EV-MUS-01","transfer_status":"PROHIBITED","id_check_required":1,"notes":"양도 금지. 모바일 티켓 캡처로 입장할 수 없다.","source_id":"SRC-DEMO"},
+    {"id":"POL-BASE","event_id":"EV-BASE-01","transfer_status":"CONDITIONAL","id_check_required":null,"notes":"공식 앱의 선물하기로 받은 티켓인지 확인해야 한다.","source_id":"SRC-DEMO"}
+  ],
+  "sample_post": [
+    {"id":"SP-FEST","event_id":"EV-FEST-01","label":"페스티벌 · 고가 제시","text":"2026-12-12 별빛 페스티벌 VIP 한 장 30만원. 여러 장 보유, 입금 우대.","extracted_seat_grade":"VIP","extracted_price_krw":300000,"evidence":["VIP 한 장 30만원","여러 장 보유","입금 우대"]},
+    {"id":"SP-MUS","event_id":"EV-MUS-01","label":"뮤지컬 · 정가와 입장 조건","text":"2026-12-19 뮤지컬 밤의 서약 R석 한 장 11만원. 모바일 티켓 캡처를 보내드립니다.","extracted_seat_grade":"R","extracted_price_krw":110000,"evidence":["R석 한 장 11만원","모바일 티켓 캡처"]},
+    {"id":"SP-BASE","event_id":"EV-BASE-01","label":"프로야구 · 공식 선물하기","text":"2027-04-03 시티 블루스 vs 리버 레즈 테이블석 한 장 6만원. 양도 방식은 문의 바랍니다.","extracted_seat_grade":"TABLE","extracted_price_krw":60000,"evidence":["테이블석 한 장 6만원","양도 방식은 문의 바랍니다"]}
+  ]
+}

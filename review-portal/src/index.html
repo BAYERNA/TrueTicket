@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#102e35" />
+    <title>TicketGuard AI · 거래 전 점검</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script defer src="/client.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <a class="brand" href="/" aria-label="TicketGuard AI 처음으로"
+          ><b class="mark" aria-hidden="true">T</b>TicketGuard
+          <span>AI</span></a
+        >
+        <nav aria-label="서비스">
+          <button id="audience" class="active">관객 점검</button
+          ><button id="operator">운영자 접수함</button>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <div id="app"><p>점검 사례를 불러오는 중입니다.</p></div>
+    </main>
+    <footer><b>TicketGuard AI</b><span>가상 티켓 · 해커톤 시연</span></footer>
+  </body>
+</html>

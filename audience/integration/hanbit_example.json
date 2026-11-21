@@ -1,0 +1,23 @@
+{
+  "status": "가상 통합 시연 기준값. 관객이 근거를 선택하고 동의하면 별도 시연 공간에 접수한다.",
+  "when_user_confirms": {
+    "organizer_ref": "DEMO-HANBIT",
+    "origin_post_id": "post-017",
+    "event_name": "2026 한빛 겨울 콘서트",
+    "performance": "1회차",
+    "seat_candidates": ["A-01-01", "A-01-02"],
+    "quantity": 2,
+    "asking_price_each_krw": 137000,
+    "chosen_evidence": ["정가 장당 11만 원", "추가금 장당 27,000원", "두 장 합계 274,000원"],
+    "benchmark_reference": "한빛 콘서트 가상 R석 가격표"
+  },
+  "public_expected": {
+    "benchmark_each_krw": 110000,
+    "difference_each_krw": 27000
+  },
+  "operator_only_expected_for_fixture": {
+    "purchase_each_including_fee_krw": 112000,
+    "difference_each_krw": 25000
+  },
+  "source": "https://github.com/BAYERNA/TrueTicket/blob/f643f52dd0103299619a1c31a359a6f9e1191f71/docs/sample-report.txt"
+}
