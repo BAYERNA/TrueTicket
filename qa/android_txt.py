@@ -80,7 +80,7 @@ def open_page(url):
         try:
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/json/list", timeout=2) as r:
                 tabs = json.load(r)
-            page = next((t for t in tabs if t.get("url", "").startswith(url.split("?")[0]) and t.get("type")=="page"), None)
+            page = next((t for t in tabs if t.get("url") == url and t.get("type") == "page"), None)
             if page:
                 tab = ChromeTab(page["webSocketDebuggerUrl"])
                 if tab.evaluate("Boolean(document.querySelector('#download'))"):
@@ -155,9 +155,13 @@ def main():
     try:
         for sample in SAMPLES:
             evidence["rows"].append(verify_sample(args.origin.rstrip("/"),sample,golden[sample]))
+    except (RuntimeError, OSError, subprocess.SubprocessError, websocket.WebSocketException) as error:
+        evidence["error"] = str(error)
+        raise
     finally:
-        args.output.write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+"\n")
-    print(json.dumps(evidence,ensure_ascii=False,indent=2))
+        result = json.dumps(evidence, ensure_ascii=False, indent=2)
+        args.output.write_text(result + "\n", encoding="utf-8")
+        print(result, flush=True)
 
 
 if __name__ == "__main__":
