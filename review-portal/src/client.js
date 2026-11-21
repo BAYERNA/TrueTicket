@@ -157,7 +157,7 @@ function result(s) {
     encode(r.benchmark_source) +
     '</p><div class="actions"><a class="btn primary" download href="/reports/' +
     s.id +
-    '.txt">점검 결과 TXT 저장</a><a class="btn" href="https://www.culture.go.kr/singo/" target="_blank" rel="noopener noreferrer">공식 신고센터</a></div></section>'
+    '.txt">점검 결과 TXT 저장</a><a class="btn" href="/mobile-check?sample=' + s.id + '">휴대폰 저장 확인</a><a class="btn" href="https://www.culture.go.kr/singo/" target="_blank" rel="noopener noreferrer">공식 신고센터</a></div></section>'
   );
 }
 function standard() {

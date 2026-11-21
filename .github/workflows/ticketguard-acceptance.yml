@@ -1,0 +1,70 @@
+name: TicketGuard model and mobile checks
+on:
+  workflow_dispatch:
+  push:
+    branches: [qa/nov21-live-mobile]
+permissions:
+  contents: read
+jobs:
+  hosted-model:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'openai>=1.50,<3'
+      - name: Test synthetic cases if the project provider is configured
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            printf '%s\n' 'OpenAI hosted evaluation was not run: repository API credential is not configured.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python audience/evaluation/live_check.py --output hosted-results.json
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('hosted-results.json') != ''
+        with:
+          name: hosted-model-evidence
+          path: hosted-results.json
+          retention-days: 7
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build the expected synthetic reports
+        run: |
+          (cd review-portal && bash scripts/build.sh)
+          node qa/report_bytes.mjs > expected-reports.json
+          python -m venv "$RUNNER_TEMP/tg-python"
+          "$RUNNER_TEMP/tg-python/bin/pip" install websocket-client
+      - name: Start Android 33 Google Play test device
+        shell: bash
+        run: |
+          set -eu
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+          sdkmanager 'system-images;android-33;google_apis_playstore;x86_64' 'platform-tools' 'emulator' >/dev/null
+          echo no | avdmanager create avd -n ticketguard -k 'system-images;android-33;google_apis_playstore;x86_64' -d pixel_5
+          sudo setfacl -m "u:$(id -un):rw" /dev/kvm
+          nohup emulator -avd ticketguard -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/avd.log" 2>&1 < /dev/null &
+          timeout 420 bash -c 'adb wait-for-device; until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 3; done'
+          adb shell input keyevent KEYCODE_WAKEUP
+          adb shell wm dismiss-keyguard
+      - name: Save and reopen three reports through Android Chrome
+        run: '"$RUNNER_TEMP/tg-python/bin/python" qa/android_txt.py --golden expected-reports.json --output android-results.json'
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('android-results.json') != ''
+        with:
+          name: android-file-evidence
+          path: android-results.json
+          retention-days: 7

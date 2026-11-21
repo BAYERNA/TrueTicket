@@ -283,13 +283,15 @@ export default {
       const p = new URL(req.url).pathname;
       const method = req.method;
       if (method === "GET") {
-        if (p === "/" || p === "/style.css" || p === "/client.js") {
-          const [body, type] =
-            p === "/"
-              ? [PAGE, "text/html"]
-              : p === "/style.css"
-                ? [STYLE, "text/css"]
-                : [CLIENT, "text/javascript"];
+        const assets = {
+          "/": [PAGE, "text/html"],
+          "/style.css": [STYLE, "text/css"],
+          "/client.js": [CLIENT, "text/javascript"],
+          "/mobile-check": [MOBILE_PAGE, "text/html"],
+          "/mobile-check.js": [MOBILE_SCRIPT, "text/javascript"],
+        };
+        if (Object.hasOwn(assets, p)) {
+          const [body, type] = assets[p];
           return new Response(body, {
             headers: {
               ...responseHeaders,
