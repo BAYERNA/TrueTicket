@@ -1,8 +1,7 @@
-"""동의받은 가상 한빛 사례의 선택 근거만 통합 접수함에 보낸다."""
+"""선택한 한빛 근거를 공개 브라우저의 같은 공연 접수 양식에 전달한다."""
 import json
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.parse import urlencode
 from uuid import UUID, uuid4
 
 import streamlit as st
@@ -12,40 +11,22 @@ DEMO = json.loads((Path(__file__).resolve().parents[1] / "integration" / "hanbit
 FIELDS = DEMO["when_user_confirms"]
 
 
-def send(workspace, key, indices):
-    path = f"{PORTAL}/api/workspaces/{UUID(workspace)}/receipts"
-    body = {"consent": True, "source": FIELDS["origin_post_id"], "evidence": indices, "key": key}
-    request = Request(path, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
-    try:
-        with urlopen(request, timeout=12) as result:
-            return json.load(result)["receipt"]
-    except (HTTPError, URLError, TimeoutError, ValueError, KeyError) as exc:
-        raise ValueError("접수 결과를 확인할 수 없습니다. 같은 근거로 재시도하거나 관객 초대 링크를 확인하세요.") from exc
-
-
 def review_panel():
     with st.expander("한빛 콘서트 · 운영자에게 검토 요청"):
         st.write("2026 한빛 겨울 콘서트 1회차 · R석 두 장. 장당 제시액 137,000원, 가상 정가 110,000원.")
-        workspace = st.query_params.get("w", "")
         try:
-            workspace = str(UUID(workspace))
+            workspace = str(UUID(st.query_params.get("w", "")))
         except (ValueError, TypeError):
             st.link_button("한빛 콘서트 통합 시연 열기", PORTAL + "/?case=hanbit")
             return
-        st.link_button("같은 공간의 공개 관객 화면 열기", f"{PORTAL}/?w={workspace}")
         evidence = FIELDS["chosen_evidence"]
         chosen = st.multiselect("보낼 근거 문구", evidence, default=evidence, key=f"evidence-{workspace}")
-        consent = st.checkbox("가상 한빛 운영팀에 행사·회차, 글 번호, 좌석 후보, 제시액과 선택한 근거를 보내는 데 동의합니다.", key=f"consent-{workspace}")
-        if st.button("선택 근거로 검토 접수"):
-            if not chosen or not consent:
-                st.warning("전송할 근거와 동의를 확인하세요.")
-                return
-            indices = sorted(evidence.index(s) for s in chosen)
-            slot = f"request-{workspace}-{indices}"
-            key = st.session_state.setdefault(slot, str(uuid4()))
-            try:
-                receipt = send(workspace, key, indices)
-            except ValueError as exc:
-                st.error(str(exc))
-                return
-            st.success("운영자 접수번호  " + receipt)
+        st.caption("가상 한빛 운영팀에 보낼 항목을 선택하세요. 다음 화면에서 전송에 동의하면 접수번호를 확인할 수 있습니다.")
+        if not chosen:
+            return
+        indices = ",".join(str(i) for i, text in enumerate(evidence) if text in chosen)
+        slot = f"request-{workspace}-{indices}"
+        if slot not in st.session_state:
+            st.session_state[slot] = str(uuid4())
+        fragment = urlencode({"e": indices, "k": st.session_state[slot]})
+        st.link_button("선택 근거 확인 및 접수", f"{PORTAL}/?w={workspace}#{fragment}")

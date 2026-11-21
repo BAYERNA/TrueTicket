@@ -17,6 +17,16 @@ const state = {
   analyzed: false,
   inbox: null,
 };
+const handoff = new URLSearchParams(location.hash.slice(1));
+const selected = handoff.get("e") || "";
+const handoffKey = handoff.get("k") || "";
+const fromViewer =
+  !!given &&
+  /^(?:0|1|2)(?:,(?:0|1|2))*$/.test(selected) &&
+  /^[a-f0-9-]{36}$/.test(handoffKey);
+function initiallySelected(i) {
+  return !fromViewer || selected.split(",").includes(String(i));
+}
 const encode = (x) =>
   String(x ?? "").replace(
     /[&<>"']/g,
@@ -200,7 +210,9 @@ function hanbit() {
             (v, i) =>
               '<label class="formcheck"><input type="checkbox" name="evidence" value="' +
               i +
-              '" checked>' +
+              '"' +
+              (initiallySelected(i) ? " checked" : "") +
+              ">" +
               encode(v) +
               "</label>",
           )
@@ -398,7 +410,10 @@ async function doAction(action) {
     const index = key("send-" + ev.join(","));
     let id = sessionStorage.getItem(index);
     if (!id) {
-      id = crypto.randomUUID();
+      id =
+        fromViewer && ev.join(",") === selected
+          ? handoffKey
+          : crypto.randomUUID();
       sessionStorage.setItem(index, id);
     }
     const r = await api(endpoint("receipts"), {

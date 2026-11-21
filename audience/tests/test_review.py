@@ -1,28 +1,30 @@
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 from uuid import uuid4
 
 from streamlit.testing.v1 import AppTest
 
 
 class IntegratedReview(unittest.TestCase):
-    def test_opt_in_and_retry_in_the_original_viewer(self):
+    def test_selected_evidence_and_retry_key_follow_guest_to_consent_form(self):
         app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"))
         workspace = str(uuid4())
         app.query_params["w"] = workspace
         app.run()
-        def submit():
-            next(b for b in app.button if b.label == "선택 근거로 검토 접수").click().run()
-        with patch("src.review_request.send", return_value="TG-demo-receipt") as sender:
-            submit()
-            self.assertFalse(sender.called)
-            next(c for c in app.checkbox if c.label.startswith("가상 한빛 운영팀")).check().run()
-            submit()
-            submit()
-            self.assertEqual(sender.call_count, 2)
-            self.assertEqual(sender.call_args_list[0], sender.call_args_list[1])
-            self.assertEqual(sender.call_args.args[0], workspace)
-            self.assertEqual(sender.call_args.args[2], [0, 1, 2])
-            self.assertIn("TG-demo-receipt", app.success[0].value)
-            self.assertFalse(app.exception)
+
+        def next_link():
+            return next(x.proto.url for x in app.get("link_button") if x.proto.label == "선택 근거 확인 및 접수")
+
+        all_selected = urlsplit(next_link())
+        self.assertEqual(parse_qs(all_selected.query)["w"], [workspace])
+        self.assertEqual(parse_qs(all_selected.fragment)["e"], ["0,1,2"])
+        app.run()
+        self.assertEqual(urlsplit(next_link()), all_selected)
+        app.multiselect[0].set_value(["추가금 장당 27,000원"]).run()
+        one_selected = parse_qs(urlsplit(next_link()).fragment)
+        self.assertEqual(one_selected["e"], ["1"])
+        self.assertNotEqual(one_selected["k"], parse_qs(all_selected.fragment)["k"])
+        app.multiselect[0].set_value([]).run()
+        self.assertFalse(any(x.proto.label == "선택 근거 확인 및 접수" for x in app.get("link_button")))
+        self.assertFalse(app.exception)

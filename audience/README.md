@@ -42,6 +42,6 @@ Python 3.12.14, Streamlit 1.67.0, OpenAI SDK 2.54.0에서 핵심 단위 테스�
 운영자 원자료는 [TrueTicket 가상 시연 보고서](https://github.com/BAYERNA/TrueTicket/blob/f643f52dd0103299619a1c31a359a6f9e1191f71/docs/sample-report.txt)에서 확인할 수 있다.
 
 ## 가상 한빛 사건과 실제 모델 대조
-공개 관객·운영 시연은 https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/ 에서 실행한다. 운영자 시연 공간을 개설하면 관객 초대 주소의 `w` 값이 정해진다. 같은 `?w=<시연 공간 UUID>`로 이 Streamlit 앱을 열면 한빛 접수 폼이 해당 공간의 서버에 전송하며 같은 접수번호를 표시한다.
+공개 관객·운영 시연은 https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/ 에서 실행한다. 운영자 시연 공간을 개설하면 관객 초대 주소의 `w` 값이 정해진다. 같은 `?w=<시연 공간 UUID>`로 이 Streamlit 앱을 열면 선택한 근거를 같은 공간의 공개 접수 양식에서 이어받는다. 브라우저에서 동의해 접수하면 관객과 운영자 화면에 같은 번호가 표시된다.
 
 이 폴더에서 `python evaluation/live_check.py --output live_result.json`을 실행하면 기존 관객 앱의 실제 OpenAI 추출 경로로 신규 합성 문장 10건을 검증한다. 환경변수 OPENAI_API_KEY가 필요하다. OPENAI_MODEL로 사용할 모델을 선택할 수 있다. 키가 없으면 실행 보류를 기록하고 종료한다. 필드 정확도는 10건 모두 처리한 경우에만 산출한다.
