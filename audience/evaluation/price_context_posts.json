@@ -1,0 +1,82 @@
+[
+  {
+    "id": "X01",
+    "text": "호수 위의 별 콘서트 2027-02-13, R석 한 장. 정가 92,000원이고 장당 74,000원에 양도해요.",
+    "gold": {
+      "event_name": "호수 위의 별 콘서트",
+      "event_date": "2027-02-13",
+      "seat_grade": "R",
+      "asking_price_krw": 74000
+    }
+  },
+  {
+    "id": "X02",
+    "text": "2027-03-20 숲사슴 vs 황금매 테이블석 두 장. 합계 144,000원으로만 판매합니다.",
+    "gold": {
+      "event_name": "숲사슴 vs 황금매",
+      "event_date": "2027-03-20",
+      "seat_grade": "TABLE",
+      "asking_price_krw": null
+    }
+  },
+  {
+    "id": "X03",
+    "text": "뮤지컬 아침우체국 2027년 3월 7일 VIP석. 장당 0원으로 나눠요. 배송비 4,000원 별도입니다.",
+    "gold": {
+      "event_name": "뮤지컬 아침우체국",
+      "event_date": "2027-03-07",
+      "seat_grade": "VIP",
+      "asking_price_krw": 0
+    }
+  },
+  {
+    "id": "X04",
+    "text": "구름파도 콘서트 VIP석 두 장, 총액은 198,000원이고 한 장당 99,000원입니다.",
+    "gold": {
+      "event_name": "구름파도 콘서트",
+      "event_date": null,
+      "seat_grade": "VIP",
+      "asking_price_krw": 99000
+    }
+  },
+  {
+    "id": "X05",
+    "text": "노을고래 vs 은빛수리 2027-06-04 테이블석 장당 44,000원입니다. 택배비 3,000원 별도.",
+    "gold": {
+      "event_name": "노을고래 vs 은빛수리",
+      "event_date": "2027-06-04",
+      "seat_grade": "TABLE",
+      "asking_price_krw": 44000
+    }
+  },
+  {
+    "id": "X06",
+    "text": "뮤지컬 초록우산 한 장 양도합니다. 좌석과 날짜는 미정이고 가격은 협의해요.",
+    "gold": {
+      "event_name": "뮤지컬 초록우산",
+      "event_date": null,
+      "seat_grade": null,
+      "asking_price_krw": null
+    }
+  },
+  {
+    "id": "X07",
+    "text": "낮별 콘서트 2027-09-08 R석 한 장. 판매 가격은 협의, 정가 12만원.",
+    "gold": {
+      "event_name": "낮별 콘서트",
+      "event_date": "2027-09-08",
+      "seat_grade": "R",
+      "asking_price_krw": null
+    }
+  },
+  {
+    "id": "X08",
+    "text": "바다우편 콘서트 2027-10-16 VIP석 한 장. 정가 90,000원에 양도합니다.",
+    "gold": {
+      "event_name": "바다우편 콘서트",
+      "event_date": "2027-10-16",
+      "seat_grade": "VIP",
+      "asking_price_krw": 90000
+    }
+  }
+]

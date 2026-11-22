@@ -117,6 +117,8 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
     async def test_database_and_html_feed_match_seed(self):
         items = (await self.client.get("/api/market/posts")).json()
         feed = await self.client.get("/api/market/feed")
+        self.assertIn("<title>TicketGuard AI 가상 리셀 마켓 피드</title>", feed.text)
+        self.assertEqual((await self.client.get("/openapi.json")).json()["info"]["title"], "TicketGuard AI")
         parsed = parse_listings(feed.text)
         self.assertEqual(len(parsed), 80)
         self.assertEqual([post.model_dump() for post in parsed], items)

@@ -70,4 +70,4 @@ def report(request: Request, case_id: str) -> Response:
     case = require_case(request.app.state.db, case_id)
     document = draft_document(case, "draft_report")
     return Response(document["text"], media_type="text/plain; charset=utf-8",
-                    headers={"Content-Disposition": f'attachment; filename="TrueTicket-{case_id}-report.txt"'})
+                    headers={"Content-Disposition": f'attachment; filename="TicketGuard_AI_{case_id}_report.txt"'})

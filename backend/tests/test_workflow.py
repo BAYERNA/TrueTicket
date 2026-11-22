@@ -144,7 +144,10 @@ class WorkflowTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_download_preserves_approved_report_and_subsequent_offers(self):
         endpoint = "/api/cases/case-post-017/report"
-        original = (await self.api.get(endpoint)).text
+        response = await self.api.get(endpoint)
+        self.assertIn('filename="TicketGuard_AI_case-post-017_report.txt"', response.headers["Content-Disposition"])
+        original = response.text
+        self.assertEqual(original.splitlines()[0], "TicketGuard AI 신고서 초안")
         edited = original + "\n운영자 확인 메모"
         await self.action("draft_report", edited_text=edited)
         self.assertEqual((await self.api.get(endpoint)).text, edited)

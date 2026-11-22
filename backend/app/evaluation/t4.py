@@ -136,7 +136,7 @@ def write_result(path: Path, report: dict) -> None:
 
 
 async def main() -> int:
-    parser = argparse.ArgumentParser(description="TrueTicket T4 실측 평가 (OpenAI API 사용)")
+    parser = argparse.ArgumentParser(description="TicketGuard AI T4 실측 평가 (OpenAI API 사용)")
     parser.add_argument("--post-id", help="게시글 ID 하나만 평가하고, 전체 평가 결과는 유지")
     parser.add_argument("--output", type=Path, help="평가 결과 JSON 저장 경로")
     args = parser.parse_args()

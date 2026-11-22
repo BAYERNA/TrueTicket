@@ -44,7 +44,7 @@ def create_app(database_path: Path | None = None, *, feed_port: int | None = Non
                 app.state.evaluation_task.cancel()
                 await asyncio.gather(app.state.evaluation_task, return_exceptions=True)
 
-    application = FastAPI(title="TrueTicket", lifespan=lifespan)
+    application = FastAPI(title="TicketGuard AI", lifespan=lifespan)
     application.state.db = database
     application.state.feed_port = feed_port
     application.state.demo_lock = asyncio.Lock()

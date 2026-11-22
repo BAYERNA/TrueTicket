@@ -28,14 +28,18 @@ def loopback_endpoint(value):
     return value
 
 
-def evaluate(cases, model, local_url=None, checkpoint=None):
+def evaluate(cases, model, local_url=None, checkpoint=None, *, dataset_sha256=None):
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("평가 파일에는 합성 판매글이 하나 이상 있어야 합니다.")
     local = bool(local_url)
     report = {
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "provider": "local_openai_compatible" if local else "openai_hosted",
         "model": model,
         "endpoint": local_url if local else "https://api.openai.com/v1",
-        "dataset_sha256": hashlib.sha256(DATA.read_bytes()).hexdigest(),
+        "dataset_sha256": dataset_sha256 or hashlib.sha256(
+            json.dumps(cases, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        ).hexdigest(),
         "system_prompt_sha256": hashlib.sha256(INSTRUCTION.encode()).hexdigest(),
         "response_format": EXTRACTION_FORMAT["type"],
         "total": len(cases), "attempts": 0, "model_responses": 0, "valid_responses": 0, "rows": [],
@@ -97,11 +101,15 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path)
     parser.add_argument("--local-url", type=loopback_endpoint)
     parser.add_argument("--model")
+    parser.add_argument("--cases", type=Path, default=DATA, help="평가할 합성 판매글과 정답이 든 JSON 파일")
     args = parser.parse_args()
     if args.local_url and not args.model:
         parser.error("--local-url에는 실제 로드한 모델의 --model 이름이 필요합니다.")
-    cases = json.loads(DATA.read_text(encoding="utf-8"))
-    stats = evaluate(cases, args.model or os.getenv("OPENAI_MODEL") or "gpt-4o-mini", args.local_url, args.output)
+    case_bytes = args.cases.read_bytes()
+    stats = evaluate(
+        json.loads(case_bytes), args.model or os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
+        args.local_url, args.output, dataset_sha256=hashlib.sha256(case_bytes).hexdigest(),
+    )
     if args.output:
         save(stats, args.output)
     print(json.dumps({k:v for k,v in stats.items() if k != "rows"}, ensure_ascii=False, indent=2))
