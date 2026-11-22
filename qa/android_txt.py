@@ -168,7 +168,17 @@ def verify_sample(base, sample, expected):
             time.sleep(.4)
         else:
             raise RuntimeError(sample + " Android 파일 선택창에서 재열기 실패")
-        proof = tab.wait("document.querySelector('#proof')?.hidden === false && document.querySelector('#details').textContent")
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            proof = tab.evaluate("document.querySelector('#proof')?.hidden === false && document.querySelector('#details').textContent")
+            if proof:
+                break
+            chooser = [node for node in ui_nodes() if node.get("package", "").endswith(".documentsui")]
+            tap(chooser, ["SELECT", "Select", "OPEN", "Open", "선택", "열기"])
+            time.sleep(.4)
+        else:
+            status = tab.evaluate("document.querySelector('#status')?.textContent")
+            raise RuntimeError(f"{sample} 선택한 파일의 재열기 결과를 확인하지 못했습니다. {status}")
         return {"sample": sample, **saved, "published": published, "build": expected,
                 "matches_build": saved == expected, "reopened": True, "browser_proof": proof}
     finally:
