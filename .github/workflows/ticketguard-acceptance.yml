@@ -57,13 +57,32 @@ jobs:
       - name: Start Android 33 Google Play test device
         shell: bash
         run: |
-          set -eu
+          set -euo pipefail
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
           sdkmanager 'system-images;android-33;google_apis_playstore;x86_64' 'platform-tools' 'emulator' >/dev/null
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/ticketguard-avd"
+          if [[ -d /mnt && "$(df -Pk /mnt | awk 'END {print $4}')" -gt "$(df -Pk "$RUNNER_TEMP" | awk 'END {print $4}')" ]]; then
+            ANDROID_AVD_HOME="/mnt/ticketguard-avd-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            sudo install -d -o "$(id -un)" -g "$(id -gn)" "$ANDROID_AVD_HOME"
+          fi
+          mkdir -p "$ANDROID_AVD_HOME"
+          df -h "$ANDROID_AVD_HOME"
           echo no | avdmanager create avd -n ticketguard -k 'system-images;android-33;google_apis_playstore;x86_64' -d pixel_5
           sudo setfacl -m "u:$(id -un):rw" /dev/kvm
-          nohup emulator -avd ticketguard -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > "$RUNNER_TEMP/avd.log" 2>&1 < /dev/null &
-          timeout 420 bash -c 'adb wait-for-device; until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 3; done'
+          emulator -accel-check
+          adb start-server
+          nohup emulator -avd ticketguard -port 5554 -accel on -cores 2 -memory 2048 -gpu software -no-window -noaudio -no-snapshot -no-boot-anim -camera-back none > "$RUNNER_TEMP/avd.log" 2>&1 < /dev/null &
+          emulator_pid=$!
+          deadline=$((SECONDS + 480))
+          until [[ "$(timeout 6 adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)" == 1 ]]; do
+            if ! kill -0 "$emulator_pid" 2>/dev/null || (( SECONDS >= deadline )); then
+              adb devices -l
+              tail -100 "$RUNNER_TEMP/avd.log"
+              exit 1
+            fi
+            sleep 3
+          done
           adb shell input keyevent KEYCODE_WAKEUP
           adb shell wm dismiss-keyguard
       - name: Save and reopen three reports through Android Chrome
