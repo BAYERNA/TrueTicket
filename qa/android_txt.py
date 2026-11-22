@@ -7,6 +7,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -62,7 +63,7 @@ class ChromeTab:
     def evaluate(self, expr):
         self.seq += 1
         self.socket.send(json.dumps({"id": self.seq, "method": "Runtime.evaluate", "params": {
-            "expression": expr, "returnByValue": True, "userGesture": True}}))
+            "expression": expr, "returnByValue": True, "userGesture": True, "awaitPromise": True}}))
         while True:
             msg = json.loads(self.socket.recv())
             if msg.get("id") == self.seq:
@@ -108,40 +109,68 @@ def list_reports(sample):
     return set(filter(None, adb("shell", cmd).splitlines()))
 
 
+def browser_reference(tab):
+    return tab.evaluate("""(async () => {
+        const response = await fetch(document.querySelector('#download').href, {cache: 'no-store'});
+        if (!response.ok) return null;
+        const bytes = await response.arrayBuffer();
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+        const sha256 = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+        return {bytes: bytes.byteLength, sha256};
+    })()""")
+
+
+def saved_file_info(remote_path, expected_size):
+    with tempfile.TemporaryDirectory(prefix="ticketguard-txt-") as staging:
+        local_path = Path(staging) / "saved.txt"
+        deadline = time.monotonic() + 12
+        while True:
+            adb("pull", remote_path, str(local_path))
+            data = local_path.read_bytes()
+            if len(data) == expected_size or time.monotonic() >= deadline:
+                return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+            time.sleep(.5)
+
+
 def verify_sample(base, sample, expected):
-    tab = open_page(base+"/mobile-check?sample="+sample)
+    tab = open_page(base + "/mobile-check?sample=" + sample)
     try:
+        tab.wait("document.querySelector('#download')?.href.includes(" + json.dumps(sample) + ")")
+        published = browser_reference(tab)
+        if not published:
+            raise RuntimeError(sample + " 배포된 원본 TXT를 읽을 수 없습니다.")
         before = list_reports(sample)
-        tab.wait("document.querySelector('#download')?.href.includes("+json.dumps(sample)+")")
         tab.evaluate("document.querySelector('#download').click()")
         file = None
-        end=time.monotonic()+45
-        while time.monotonic()<end:
-            found=list_reports(sample)-before
-            if len(found)==1:
-                file=found.pop()
+        deadline = time.monotonic() + 45
+        while time.monotonic() < deadline:
+            found = list_reports(sample) - before
+            if len(found) == 1:
+                file = found.pop()
                 break
             tap(ui_nodes(), ["Download", "Download again", "Allow"])
             time.sleep(.4)
-        if not file: raise RuntimeError(sample+" Android 다운로드 폴더에서 새 TXT가 확인되지 않았습니다.")
-        data=adb("exec-out","sh","-c",shlex.quote("cat "+shlex.quote(file)),binary=True)
-        digest=hashlib.sha256(data).hexdigest()
-        if digest!=expected["sha256"] or len(data)!=expected["bytes"]:
-            raise RuntimeError(sample+" 다운로드 파일이 배포 소스의 기준 바이트와 다릅니다.")
+        if not file:
+            raise RuntimeError(sample + " Android 다운로드 폴더에서 새 TXT가 확인되지 않았습니다.")
+
+        saved = saved_file_info(file, published["bytes"])
+        if saved != published:
+            raise RuntimeError(f"{sample} 저장본 {saved}, 배포 응답 {published}, 빌드 기준 {expected}")
+
         tab.evaluate("document.querySelector('#pick').click()")
-        filename = file.rsplit("/",1)[-1]
-        end=time.monotonic()+35
-        selected=False
-        while time.monotonic()<end:
-            nodes=ui_nodes()
-            if tap(nodes,[filename]):
-                selected=True
+        filename = file.rsplit("/", 1)[-1]
+        deadline = time.monotonic() + 35
+        while time.monotonic() < deadline:
+            nodes = ui_nodes()
+            if tap(nodes, [filename]):
                 break
-            tap(nodes,["Downloads","Show roots","Show more options","Files","Browse files"])
+            tap(nodes, ["Downloads", "Show roots", "Show more options", "Files", "Browse files"])
             time.sleep(.4)
-        if not selected: raise RuntimeError(sample+" Android 파일 선택창에서 재열기 실패")
-        proof=tab.wait("document.querySelector('#proof')?.hidden===false && document.querySelector('#details').textContent")
-        return {"sample":sample,"bytes":len(data),"sha256":digest,"reopened":True,"browser_proof":proof}
+        else:
+            raise RuntimeError(sample + " Android 파일 선택창에서 재열기 실패")
+        proof = tab.wait("document.querySelector('#proof')?.hidden === false && document.querySelector('#details').textContent")
+        return {"sample": sample, **saved, "published": published, "build": expected,
+                "matches_build": saved == expected, "reopened": True, "browser_proof": proof}
     finally:
         try:
             tab.socket.close()
@@ -163,22 +192,23 @@ def main():
               "device":command("getprop","ro.product.model"),"android":command("getprop","ro.build.version.release"),
               "chrome":match.group(1) if match else None,"rows":[]}
     if not evidence["chrome"]: raise RuntimeError("연결된 테스트 기기에 Android Chrome이 필요합니다.")
-    try:
-        for sample in SAMPLES:
-            evidence["rows"].append(verify_sample(args.origin.rstrip("/"),sample,golden[sample]))
-    except (RuntimeError, OSError, subprocess.SubprocessError, websocket.WebSocketException) as error:
-        evidence["error"] = str(error)
-        if emulator and os.getenv("GITHUB_ACTIONS") == "true":
-            nodes = ui_nodes()
-            evidence["test_screen"] = list(dict.fromkeys(
-                node.get("text") or node.get("content-desc") for node in nodes
-                if node.get("text") or node.get("content-desc")
-            ))[:24]
-        raise
-    finally:
+    for sample in SAMPLES:
+        try:
+            row = verify_sample(args.origin.rstrip("/"), sample, golden[sample])
+        except (RuntimeError, OSError, subprocess.SubprocessError, websocket.WebSocketException) as error:
+            row = {"sample": sample, "reopened": False, "error": str(error)}
+            if emulator and os.getenv("GITHUB_ACTIONS") == "true":
+                row["test_screen"] = list(dict.fromkeys(
+                    node.get("text") or node.get("content-desc") for node in ui_nodes()
+                    if node.get("text") or node.get("content-desc")
+                ))[:24]
+        evidence["rows"].append(row)
         result = json.dumps(evidence, ensure_ascii=False, indent=2)
         args.output.write_text(result + "\n", encoding="utf-8")
-        print(result, flush=True)
+        print(json.dumps(row, ensure_ascii=False), flush=True)
+    print(result, flush=True)
+    if not all(row.get("reopened") and row.get("matches_build") for row in evidence["rows"]):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
