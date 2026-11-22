@@ -6,7 +6,7 @@
 
 ## 관객과 운영자 연결
 
-[공개 시연](https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/)에서 세 가지 관객 점검 또는 한빛 콘서트의 검토 접수를 체험한다. 같은 운영자 브라우저로 접수함을 열어 접수번호와 두 좌석을 확인한다. 공개 공간은 합성 자료만 사용하며 원래 로컬 운영 DB와 별도로 시연 기록을 저장한다. 통합 접수함 코드는 [review-portal](review-portal/)에 있다. Python 관객 앱과 새로운 문장 10건의 실제 모델 대조 절차는 [audience/README.md](audience/README.md)에 있다.
+[공개 시연](https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/)에서 세 가지 관객 점검 또는 한빛 콘서트의 검토 접수를 체험한다. 같은 운영자 브라우저로 접수함을 열어 접수번호와 두 좌석을 확인한다. 공개 공간은 합성 자료만 사용하며 원래 로컬 운영 DB와 별도로 시연 기록을 저장한다. 통합 접수함 코드는 [review-portal](review-portal/)에 있다. Python 관객 앱에서 합성 판매글 18건의 모델 추출 결과를 재검증하는 방법은 [관객 앱 실행 안내](audience/README.md)에 있다.
 
 ## 실행
 

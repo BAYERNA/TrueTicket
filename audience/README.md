@@ -33,7 +33,7 @@ python -m streamlit run app.py
 
 ## 검증 기록
 
-Python 3.12.14, Streamlit 1.67.0, OpenAI SDK 2.54.0에서 핵심 단위 테스트 17개와 Streamlit AppTest 5개를 통과했다. AppTest는 위젯에서 세 사례를 분석해 다운로드 버튼에 공급된 UTF-8 본문을 검사한다. 이 결과의 범위는 로컬 앱 테스트다. 공개 URL/모바일 브라우저에서의 실제 파일 저장, 실제 LLM 호출과 필드 일치율, 최종 제출 증빙은 후속 점검 항목이다.
+2026년 11월 22일 관객 앱 자동 테스트 31개를 통과했다. Streamlit 화면에서 로컬 Qwen 모델을 선택해 페스티벌·뮤지컬·야구 세 사례의 장당 금액, 기준가 차이, 결과 등급, TXT 다운로드 버튼을 확인했다. 공개 사이트의 세 TXT는 Android 13 에뮬레이터에서 저장 후 다시 열어 원본과 대조했다. [모델·브라우저 검증 기록](../qa/2026-11-21-verification.md)
 
 ## 한빛 콘서트와 운영자 연계
 
@@ -44,4 +44,6 @@ Python 3.12.14, Streamlit 1.67.0, OpenAI SDK 2.54.0에서 핵심 단위 테스�
 ## 가상 한빛 사건과 실제 모델 대조
 공개 관객·운영 시연은 https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site/ 에서 실행한다. 운영자 시연 공간을 개설하면 관객 초대 주소의 `w` 값이 정해진다. 같은 `?w=<시연 공간 UUID>`로 이 Streamlit 앱을 열면 선택한 근거를 같은 공간의 공개 접수 양식에서 이어받는다. 브라우저에서 동의해 접수하면 관객과 운영자 화면에 같은 번호가 표시된다.
 
-이 폴더에서 `python evaluation/live_check.py --output live_result.json`을 실행하면 기존 관객 앱의 실제 OpenAI 추출 경로로 신규 합성 문장 10건을 검증한다. 환경변수 OPENAI_API_KEY가 필요하다. OPENAI_MODEL로 사용할 모델을 선택할 수 있다. 키가 없으면 실행 보류를 기록하고 종료한다. 필드 정확도는 10건 모두 처리한 경우에만 산출한다.
+이 폴더에서 `python evaluation/live_check.py --output live_result.json`을 실행하면 관객 앱과 같은 추출 경로로 기본 합성 판매글 10건을 검사한다. `--cases evaluation/price_context_posts.json`을 붙이면 정가·배송비·합계·무료 나눔 등 8건을 검사한다. 각 사례의 행사명, 날짜, 좌석, 장당 가격을 정답과 대조하며 결과 파일에 모델 원응답과 앱의 최종값을 함께 기록한다.
+
+OpenAI 운영 API에는 환경변수 `OPENAI_API_KEY`가 필요하다. `OPENAI_MODEL`로 모델을 선택할 수 있다. 키가 없으면 호출 보류를 기록한다. 로컬 호환 모델 서버를 실행했다면 `--local-url http://127.0.0.1:8080/v1 --model <서버의-모델명>`으로 같은 검사를 실행할 수 있다.
