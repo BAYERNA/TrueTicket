@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the TrueTicket demo seed and the private evaluation set (Python 3.11+)."""
+"""Generate the TicketGuard AI demo seed and the private evaluation set (Python 3.11+)."""
 
 from __future__ import annotations
 

@@ -177,7 +177,7 @@ async def evaluate(mode: str, usage_db: Database) -> dict:
 
 
 async def main() -> int:
-    parser = argparse.ArgumentParser(description="TrueTicket 전체 평가. Gemini 실측은 --mode gemini로 명시합니다.")
+    parser = argparse.ArgumentParser(description="TicketGuard AI 전체 평가. Gemini 실측은 --mode gemini로 명시합니다.")
     parser.add_argument("--mode", choices=("local", "gemini"), default="local")
     args = parser.parse_args()
     if args.mode == "gemini" and not api_key():

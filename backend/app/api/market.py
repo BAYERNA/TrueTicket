@@ -42,7 +42,7 @@ def market_feed(request: Request, event_id: str | None = Query(default=None, max
     cards = "".join(listing_html(post) for post in posts)
     return HTMLResponse(
         '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        '<title>TrueTicket 가상 리셀 마켓 피드</title></head><body>'
+        '<title>TicketGuard AI 가상 리셀 마켓 피드</title></head><body>'
         f'<main id="{FEED_MARKER}" data-count="{len(posts)}">{cards}</main></body></html>',
         headers={"Cache-Control": "no-store"},
     )

@@ -48,7 +48,7 @@ def draft_document(case: dict, kind: str) -> dict:
                     return {**document, "text": "\n".join([document["text"], "", "승인 후 처리 경과", *subsequent])}
                 return document
     post = case["post"]
-    lines = [f"TrueTicket {ACTION_LABELS[kind]}", "가상 데이터 기반 운영 검토용 초안", "",
+    lines = [f"TicketGuard AI {ACTION_LABELS[kind]}", "가상 데이터 기반 운영 검토용 초안", "",
              f"케이스 {case['case_id']}", f"게시글 {post['post_id']} · {post['channel']}",
              post["title"], post["body"], "", "연결된 예매"]
     for booking in case["match"]["bookings"]:
