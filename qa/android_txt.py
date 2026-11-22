@@ -2,8 +2,10 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import shlex
+import shutil
 import subprocess
 import time
 import urllib.request
@@ -16,10 +18,13 @@ SAMPLES = ("SP-FEST", "SP-MUS", "SP-BASE")
 PUBLIC = "https://ticketguard-ai-demo.tart-hippo-0446.chatgpt.site"
 FOLDER = "/sdcard/Download"
 CHROME = "com.android.chrome"
+SDK = os.getenv("ANDROID_HOME") or os.getenv("ANDROID_SDK_ROOT")
+ADB_NAME = "adb.exe" if os.name == "nt" else "adb"
+ADB = shutil.which(ADB_NAME) or (str(Path(SDK) / "platform-tools" / ADB_NAME) if SDK else ADB_NAME)
 
 
 def adb(*args, binary=False):
-    result = subprocess.check_output(["adb", *args], timeout=25)
+    result = subprocess.check_output([ADB, *args], timeout=25)
     return result if binary else result.decode("utf-8", errors="replace").strip()
 
 
@@ -49,7 +54,8 @@ def tap(nodes, labels):
 
 
 class ChromeTab:
-    def __init__(self, url):
+    def __init__(self, url, port):
+        self.port = port
         self.socket = websocket.create_connection(url, timeout=12, suppress_origin=True)
         self.seq = 0
 
@@ -82,14 +88,16 @@ def open_page(url):
                 tabs = json.load(r)
             page = next((t for t in tabs if t.get("url") == url and t.get("type") == "page"), None)
             if page:
-                tab = ChromeTab(page["webSocketDebuggerUrl"])
+                tab = ChromeTab(page["webSocketDebuggerUrl"], port)
                 if tab.evaluate("Boolean(document.querySelector('#download'))"):
                     return tab
                 tab.socket.close()
         except (OSError, ValueError, websocket.WebSocketException):
             pass
-        tap(ui_nodes(), ["Use without an account", "Continue without an account", "No thanks", "Accept & continue", "Got it"])
+        tap(ui_nodes(), ["Use without an account", "Use Chrome without an account", "Continue without an account",
+                         "Continue without signing in", "No thanks", "No, thanks", "Accept & continue", "Got it"])
         time.sleep(.5)
+    adb("forward", "--remove", "tcp:" + port)
     raise RuntimeError("Android Chrome에서 모바일 확인 페이지를 열지 못했습니다.")
 
 
@@ -135,7 +143,10 @@ def verify_sample(base, sample, expected):
         proof=tab.wait("document.querySelector('#proof')?.hidden===false && document.querySelector('#details').textContent")
         return {"sample":sample,"bytes":len(data),"sha256":digest,"reopened":True,"browser_proof":proof}
     finally:
-        tab.socket.close()
+        try:
+            tab.socket.close()
+        finally:
+            adb("forward", "--remove", "tcp:" + tab.port)
 
 
 def main():
@@ -157,6 +168,12 @@ def main():
             evidence["rows"].append(verify_sample(args.origin.rstrip("/"),sample,golden[sample]))
     except (RuntimeError, OSError, subprocess.SubprocessError, websocket.WebSocketException) as error:
         evidence["error"] = str(error)
+        if emulator and os.getenv("GITHUB_ACTIONS") == "true":
+            nodes = ui_nodes()
+            evidence["test_screen"] = list(dict.fromkeys(
+                node.get("text") or node.get("content-desc") for node in nodes
+                if node.get("text") or node.get("content-desc")
+            ))[:24]
         raise
     finally:
         result = json.dumps(evidence, ensure_ascii=False, indent=2)
