@@ -162,3 +162,11 @@ class ConsumerChecks(unittest.TestCase):
                 json.dumps({"asking_price_krw": price, "evidence_phrases": [text]}), text
             )
             self.assertEqual(r["asking_price_krw"], expected)
+
+class PriceContextRegression(unittest.TestCase):
+    def test_total_and_per_ticket_in_the_same_quotation(self):
+        text = "두 장 총액은 20만원, 장당 10만원입니다."
+        for candidate, expected in [(200000, None), (100000, 100000)]:
+            with self.subTest(price=candidate):
+                raw = {"asking_price_krw": candidate, "evidence_phrases": [text]}
+                self.assertEqual(parse_extraction(json.dumps(raw), text)["asking_price_krw"], expected)

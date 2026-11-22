@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TXT 저장 확인 · TicketGuard AI</title><link rel="stylesheet" href="/style.css"><script defer src="/mobile-check.js"></script></head>
+<body><header><div class="bar"><a class="brand" href="/"><b class="mark" aria-hidden="true">T</b>TicketGuard <span>AI</span></a></div></header>
+<main><section class="intro"><div><h1>스마트폰 TXT 저장 확인</h1><p>점검 결과를 내려받고, 휴대폰에 저장된 파일을 다시 열어 한글과 금액을 확인하세요.</p></div></section>
+<div class="column"><section class="panel"><h2>1. 파일 내려받기</h2><p><label for="sample">시연 사례</label></p>
+<select class="linkfield" id="sample"><option value="SP-FEST">별빛 페스티벌</option><option value="SP-MUS">뮤지컬 밤의 서약</option><option value="SP-BASE">시티 블루스 vs 리버 레즈</option></select>
+<div class="actions"><a class="btn primary" id="download" download href="/reports/SP-FEST.txt">점검 결과 TXT 저장</a></div></section>
+<section class="panel"><h2>2. 저장한 파일 다시 열기</h2><p>‘파일 선택’에서 방금 저장한 TXT를 고르세요. 비교는 이 기기에서만 진행합니다.</p>
+<input class="linkfield" id="pick" type="file" accept=".txt,text/plain" aria-label="저장한 TXT 파일 선택"><p role="status" aria-live="polite" class="sub" id="status">파일 선택 대기</p>
+<div id="proof" hidden><p id="details"></p><p id="browser" class="muted"></p><div class="actions"><button type="button" id="copy">확인 결과 복사</button></div></div></section></div></main></body></html>
